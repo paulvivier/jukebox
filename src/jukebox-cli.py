@@ -17,7 +17,7 @@ while True:
     print("**** Spotify Commands  ****")
     print("0 - Exit the console")
     print("1 - List Playlist")
-    print("2 - Play song from Playlist")
+    print("2 - Play song by ID")
     print("3 - List Devices")
     user_input = int(input("Enter Your Choice: "))
 
@@ -43,7 +43,7 @@ while True:
         print(offset, "/", response["total"])
         offset = 0
 
-    # Play Song from Playlist
+    # Play Song By ID
     elif user_input == 2:
         playback_uris: list[str] = ["spotify:track:6exdwZ3EOSCjb11bd6k6Np"]
         track_selection = str(input("Enter Track ID: "))
