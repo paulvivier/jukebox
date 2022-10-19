@@ -45,11 +45,15 @@ while True:
 
     # Play Song from Playlist
     elif user_input == 2:
-        # track_selection = str(input("Enter Track ID: "))
+        playback_uris: list[str] = ["spotify:track:6exdwZ3EOSCjb11bd6k6Np"]
+        track_selection = str(input("Enter Track ID: "))
+        new_track = f"spotify:track:{track_selection}"
+        playback_uris = [new_track]
 
         # Open Spotify App locally. Small delay so API can see it.
-        os.system(f"open {path}")
-        sleep(5)
+        # Comment out for faster testing during development
+        # os.system(f"open {path}")
+        # sleep(5)
 
         # Shows playing devices
         res = sp.devices()
@@ -57,14 +61,9 @@ while True:
 
         scope = "user-read-playback-state,user-modify-playback-state"
         sp = spotipy.Spotify(client_credentials_manager=SpotifyOAuth(scope=scope))
-        # playback_uris='uris=["spotify:track:6exdwZ3EOSCjb11bd6k6Np"]'
 
-        # Forces the device for playback. Will override a time-out ('is_active': False)
-        transfer_playback = sp.transfer_playback(
-            # Current playback device ID
-            "3fc94b15082d6a1206c60d9f97310d37bd5032da"
-        )
-        playsong = sp.start_playback(uris=["spotify:track:6exdwZ3EOSCjb11bd6k6Np"])
+        device_id = "3fc94b15082d6a1206c60d9f97310d37bd5032da"
+        pprint(sp.start_playback(device_id, uris=playback_uris))
 
         # Change volume
         # sp.volume(100)
