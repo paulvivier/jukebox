@@ -18,11 +18,12 @@ while True:
     print("0 - Exit the console")
     print("1 - List Playlist")
     print("2 - Play song from Playlist")
+    print("3 - List Devices")
     user_input = int(input("Enter Your Choice: "))
 
     # Default - Exit
     if user_input == 0:
-        print("Good Bye, Have a great day!")
+        print("Good Bye. Have a great day!")
         break
 
     # List Playlist
@@ -44,21 +45,33 @@ while True:
 
     # Play Song from Playlist
     elif user_input == 2:
+        # track_selection = str(input("Enter Track ID: "))
         # Shows playing devices
+        os.system(f"open {path}")
+        sleep(5)
         res = sp.devices()
         pprint(res)
 
-        os.system(f"open {path}")
         scope = "user-read-playback-state,user-modify-playback-state"
         sp = spotipy.Spotify(client_credentials_manager=SpotifyOAuth(scope=scope))
+        # playback_uris='uris=["spotify:track:6exdwZ3EOSCjb11bd6k6Np"]'
+
+        # Forces device to playback on, even if it's timed out ('is_active': False)
+        transfer_playback = sp.transfer_playback(
+            "3fc94b15082d6a1206c60d9f97310d37bd5032da"
+        )
         playsong = sp.start_playback(uris=["spotify:track:6exdwZ3EOSCjb11bd6k6Np"])
 
         # Change volume
-        sp.volume(100)
-        sleep(2)
-        sp.volume(50)
-        sleep(2)
-        sp.volume(100)
+        # sp.volume(100)
+        # sleep(2)
+        # sp.volume(50)
+        # sleep(2)
+        # sp.volume(100)
+
+    elif user_input == 3:
+        res = sp.devices()
+        pprint(res)
 
     # start_playback(
     # device_id=None,
