@@ -13,20 +13,6 @@ print(sp)
 pl_id = "spotify:playlist:5ye50Gt9kPJ14e8wdG9yiG"
 offset = 0
 
-# while True:
-#     response = sp.playlist_items(pl_id,
-#                                  offset=offset,
-#                                  fields='items.track.id,total',
-#                                  additional_types=['track'])
-#
-#     if len(response['items']) == 0:
-#         break
-#
-#     pprint(response['items'])
-#     offset = offset + len(response['items'])
-#     print(offset, "/", response['total'])
-
-
 while True:
     print("**** Spotify Commands  ****")
     print("0 - Exit the console")
@@ -54,16 +40,7 @@ while True:
         pprint(response["items"])
         offset = offset + len(response["items"])
         print(offset, "/", response["total"])
-
         offset = 0
-
-    # search_song = input("Enter the song name: ")
-    # results = spotifyObject.search(search_song, 1, 0, "track")
-    # songs_dict = results['tracks']
-    # song_items = songs_dict['items']
-    # song = song_items[0]['external_urls']['spotify']
-    # webbrowser.open(song)
-    # print('Song has opened in your browser.')
 
     # Play Song from Playlist
     elif user_input == 2:
@@ -92,13 +69,3 @@ while True:
 
     else:
         print("Please enter valid user-input.")
-
-
-# results = sp.artist_albums(lcdsoundsystem_uri, album_type='album')
-# albums = results['items']
-# while results['next']:
-#     results = sp.next(results)
-#     albums.extend(results['items'])
-#
-# for album in albums:
-#     print(album['name'])
