@@ -10,6 +10,7 @@ path = "/Applications/Spotify.app"
 sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
 print(sp)
 
+# Playlist ID
 pl_id = "spotify:playlist:5ye50Gt9kPJ14e8wdG9yiG"
 offset = 0
 
@@ -38,10 +39,22 @@ while True:
         if len(response["items"]) == 0:
             break
 
-        pprint(response["items"])
-        offset = offset + len(response["items"])
-        print(offset, "/", response["total"])
-        offset = 0
+        ### print("Items in Response:")
+        ### {'track': {'artists': [{'name': 'New Order'}],
+        ###           'id': '1RSy7B2vfPi84N80QJ6frX',
+        ###           'name': 'Blue Monday - 2016 Remaster'}}
+
+        # pprint(response["items"][0]["track"]["name"])
+        # pprint(response["items"][0]["track"]["id"])
+
+        playlist_track = int(input("Select playlist track #: "))
+        if playlist_track >= len(response["items"]):
+            print("---> Selection is longer than list")
+            print("---> Need some kind of loop here")
+            break
+        track_name = response["items"][playlist_track]["track"]["name"]
+        track_id = response["items"][playlist_track]["track"]["id"]
+        pprint(f"Track name: {track_name} -- Track id: {track_id}")
 
     # Play Song By ID
     elif user_input == 2:
