@@ -9,13 +9,18 @@ from time import sleep
 ## To do:
 ##  Fix oAuth flow
 ##  Make menus into functions.
-##  Pause playback
 ##  Select item from playlist and play on device
 
 
 path = "/Applications/Spotify.app"
-device_id = "3fc94b15082d6a1206c60d9f97310d37bd5032da"
-scope = "user-read-playback-state,user-modify-playback-state"
+
+# Device options until you can add ability to specify a different one.
+device_id = "3fc94b15082d6a1206c60d9f97310d37bd5032da"  # laptop
+# device_id = "78776d6cc7f769f4ea5e302aa41977e9211af158"  # phone
+
+scope = (
+    "user-read-playback-state,user-modify-playback-state,app-remote-control,streaming"
+)
 sp = spotipy.Spotify(client_credentials_manager=SpotifyOAuth(scope=scope))
 
 # Playlist ID
@@ -60,6 +65,13 @@ while True:
         ###           'name': 'Blue Monday - 2016 Remaster'}}
 
     elif user_input == 2:
+        response = sp.playlist_items(
+            pl_id,
+            offset=offset,
+            fields="items.track.artists.name,items.track.name,items.track.id,total",
+            additional_types=["track"],
+        )
+
         playlist_track = int(input("Select playlist track (index) #: "))
         if playlist_track >= len(response["items"]):
             print("---> Selection is longer than list")
