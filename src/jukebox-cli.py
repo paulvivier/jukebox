@@ -15,6 +15,12 @@ from time import sleep
 
 path = "/Applications/Spotify.app"
 
+# You'll need these ENVs in your shell. https://developer.spotify.com/
+# SPOTIPY_CLIENT_ID=
+# SPOTIPY_CLIENT_SECRET=
+# SPOTIPY_REDIRECT_URI=
+
+
 # Device options until you can add ability to specify a different one.
 device_id = "3fc94b15082d6a1206c60d9f97310d37bd5032da"  # laptop
 # device_id = "78776d6cc7f769f4ea5e302aa41977e9211af158"  # phone
