@@ -12,3 +12,7 @@ Check the import dependencies and impore needed with pip.
 Set your own Spotify ENV variables. 
 You'll have to get a developer signin and tie it to your premium spotify account. 
 (Sorry. I need to flesh this out with details later. ENV LABELS are in the code). 
+
+
+
+![Jukebox Image](https://photos.app.goo.gl/iwmQr76RDMvxQcQLA)
