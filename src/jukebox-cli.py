@@ -7,21 +7,24 @@ from time import sleep
 
 
 ## To do:
-##  Fix oAuth flow
-##  Make menus into functions.
-##  Select item from playlist and play on device
+##  Fix oAuth flow (fixed)
+##  Make menus into functions. (spotify_int.py)
+##  Select item from playlist with mapped number and play on device
 
 
 path = "/Applications/Spotify.app"
 
 # Device options until you can add ability to specify a different one.
-device_id = "3fc94b15082d6a1206c60d9f97310d37bd5032da"  # laptop
-# device_id = "78776d6cc7f769f4ea5e302aa41977e9211af158"  # phone
+# device_id = "3fc94b15082d6a1206c60d9f97310d37bd5032da"  # laptop
+device_id = "78776d6cc7f769f4ea5e302aa41977e9211af158"  # phone
 
 scope = (
     "user-read-playback-state,user-modify-playback-state,app-remote-control,streaming"
 )
-sp = spotipy.Spotify(client_credentials_manager=SpotifyOAuth(scope=scope))
+
+# Authentication options. _May_ need to create a flow for reauthenticating.
+# sp = spotipy.Spotify(client_credentials_manager=SpotifyOAuth(scope=scope))
+sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
 
 # Playlist ID
 pl_id = "spotify:playlist:7D7FASC0bXRMdvfjggS0ug"
