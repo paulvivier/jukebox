@@ -6,10 +6,11 @@ import os
 from time import sleep
 
 
-## To do:
-##  Fix oAuth flow (fixed)
-##  Make menus into functions. (spotify_int.py)
-##  Select item from playlist with mapped number and play on device
+##  TODO
+##  Fix oAuth flow (DONE!)
+##  Make menus into functions. (DONE!)
+##  Start play on device from playlist index selection
+##  Map Numbers 100 - 279 to playlist index
 
 
 path = "/Applications/Spotify.app"
