@@ -1,15 +1,20 @@
+# from fileinput import filename
+# from sys import breakpointhook
 from spotipy.oauth2 import SpotifyClientCredentials
 from spotipy.oauth2 import SpotifyOAuth
 import spotipy
 from pprint import pprint
 import os
 from time import sleep
+import json
 
 
 ##  TODO
 ##  Fix oAuth flow (DONE!)
 ##  Make menus into functions. (DONE!)
 ##  Start play on device from playlist index selection
+##  Specify new global device id.
+##  Save more JSON locally for reference. Require at 'setup'. Remove ids from code.
 ##  Map Numbers 100 - 279 to playlist index
 
 
@@ -25,21 +30,21 @@ path = "/Applications/Spotify.app"
 device_id = "3fc94b15082d6a1206c60d9f97310d37bd5032da"  # laptop
 # device_id = "78776d6cc7f769f4ea5e302aa41977e9211af158"  # phone
 
+# Default Playlist
+### https://open.spotify.com/playlist/7D7FASC0bXRMdvfjggS0ug?si=05eae12ffb2b4b6b
+pl_id = "7D7FASC0bXRMdvfjggS0ug"
+offset = 0
+
+
 scope = (
     "user-read-playback-state,user-modify-playback-state,app-remote-control,streaming"
 )
-
 # Authentication options. _May_ need to create a flow for reauthenticating.
 sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
 sp_auth = spotipy.Spotify(client_credentials_manager=SpotifyOAuth(scope=scope))
 
-# Playlist ID
-pl_id = "spotify:playlist:7D7FASC0bXRMdvfjggS0ug"
-offset = 0
-### https://open.spotify.com/playlist/7D7FASC0bXRMdvfjggS0ug?si=05eae12ffb2b4b6b
 
-
-# Retrives usable fields from the playlist.
+# Retrives LIVE playlist from Spotify and with desired fields
 def list_playlist(pl_id) -> str:
     response = sp.playlist_items(
         pl_id,
@@ -61,7 +66,6 @@ def list_playlist(pl_id) -> str:
 
 
 # Get's song details from a playlist.
-# UPDATE - Maybe the playist scope isn't needed though
 def song_details(pl_id):
     response = list_playlist(pl_id)
     # response = sp.playlist_items(
@@ -71,6 +75,7 @@ def song_details(pl_id):
     #     additional_types=["track"],
     # )
 
+    print(f"Current Playlist id: {pl_id}")
     playlist_track: int = int(
         input("Select playlist track # (index). Example: 0, 1, 2... : ")
     )
@@ -123,6 +128,24 @@ def play_song(track_selection):
     # )
 
 
+def store_local(json_data, file_prefix):
+    file_name = file_prefix + ".json.cache"
+
+    try:
+        # json_data = requests.post(url, headers={'Authorization': 'Bearer ' + access_token}).json()
+        with open(file_name, "w") as write_file:
+            jsondump = json.dump(json_data, write_file, sort_keys=False, indent=4)
+    except:
+        print("Problem with making a connection.")
+
+    with open(file_name, "r") as read_file:
+        jsonload = json.load(read_file)
+
+    print(jsonload)
+    # Stores json respones locally for faster loading.
+    return file_name
+
+
 class color:
     PURPLE = "\033[95m"
     CYAN = "\033[96m"
@@ -143,12 +166,14 @@ class color:
 while True:
     print(color.BOLD + "\n **** Spotify CLI Commands  ****" + color.END)
     print(color.BOLD + "0" + color.END + " - Exit the console")
-    print(color.BOLD + "1" + color.END + " - List Playlist")
+    print(color.BOLD + "1" + color.END + " - Set Playlist for Session")
     print(color.BOLD + "2" + color.END + " - List Song on Playlist")
     print(color.BOLD + "3" + color.END + " - Play song by ID")
     print(color.BOLD + "4" + color.END + " - List Devices")
     print(color.BOLD + "5" + color.END + " - Pause Playback")
     print(color.BOLD + "6" + color.END + " - Resume Playback")
+    print(color.BOLD + "7" + color.END + " - Save Playlist Locally")
+    print(color.BOLD + "8" + color.END + " - Reset System")
     user_input = int(input(color.BOLD + "Enter Your Choice: " + color.END))
 
     # Default - Exit
@@ -156,11 +181,37 @@ while True:
         print("Good Bye. Have a great day!")
         break
 
-    # List Playlist
+    # Update/Display Playlist
     elif user_input == 1:
-        ## ISSUE with Typing . Likely force this into a type, but which?
-        response = list_playlist(pl_id)
-        pprint(f"Items in Playlist: {response['items']}")
+        # Check locally for playlist first and display.
+        cache_files = os.listdir("cache")
+        cache_files.remove(".DS_Store")  # get rid of Macos junk
+        print(f"Files in Cache: {cache_files}")
+
+        ### Open cache file by Index #
+        ### Just checking to make sure the contents look right
+        cache_files[0] = "cache/" + cache_files[0]  # add cache/ directory prefix
+        with open(cache_files[0], "r") as read_file:
+            jsonload = json.load(read_file)
+        print(jsonload)
+
+        # Prompt - Use Local or Live playlist?
+        # Post Breakup - Dumped: 6LcIWHYEZPyjx3nqdzDhuL
+        user_input2 = input("Set new playlist for session (and save locally?) Y/N:")
+        if user_input2 == "Y":
+            pl_id = input("Enter Playlist ID:")
+            response = list_playlist(pl_id)
+            pprint(f"Playlist: {response}")
+            file_prefix = "cache/playlist_" + pl_id
+            file_name2: str = store_local(response, file_prefix)
+            print(
+                color.BOLD,
+                color.GREEN + " # Stored Playlist locally #: " + file_name2 + color.END,
+            )
+            print(f"New Playlist ID has been changed to {pl_id}")
+
+        else:
+            print()
 
     elif user_input == 2:
         song_details(pl_id)
@@ -180,14 +231,31 @@ while True:
         pprint(list_devices())
 
     elif user_input == 5:
-        # sp = spotipy.Spotify(client_credentials_manager=SpotifyOAuth(scope=scope))
+        # Pauses playback
         response = sp.pause_playback(device_id)
         print(color.BOLD, color.RED + " * Playback Paused * " + color.END)
 
     elif user_input == 6:
-        # sp = spotipy.Spotify(client_credentials_manager=SpotifyOAuth(scope=scope))
+        # Restart Paused Playback
         response = sp.start_playback(device_id)
         print(color.BOLD, color.GREEN + " > Playback Resumed > " + color.END)
+
+    elif user_input == 7:
+        # Saves Playlist Locally
+        response = list_playlist(pl_id)
+        file_prefix = "cache/playlist_" + pl_id
+        file_name: str = store_local(response, file_prefix)
+        print(
+            color.BOLD,
+            color.GREEN + " # Stored Playlist locally #: " + file_name + color.END,
+        )
+
+    elif user_input == 8:
+
+        print("Reset System")
+        # Dowload copy of default playlist at bootup. Default is set in code.
+        # Specify another playlist as default while using the app
+        # Dowload copy of new default playlist
 
     else:
         print("Please enter valid user-input.")
