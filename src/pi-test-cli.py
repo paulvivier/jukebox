@@ -1,10 +1,20 @@
-from gpiozero import LED
-from time import sleep
+#!/usr/bin/python3
 
-red = LED(17)
+import RPi.GPIO as GPIO
+import time
 
-while True:
-    red.on()
-    sleep(1)
-    red.off()
-    sleep(1)
+led = 18
+switch = 31
+
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(led, GPIO.OUT)
+GPIO.setup(switch, GPIO.IN)
+
+for i in range(10):
+    GPIO.output(led, GPIO.HIGH)
+    time.sleep(0.2)
+    GPIO.output(led, GPIO.LOW)
+    time.sleep(0.2)
+    print("Switch status = ", GPIO.input(switch))
+
+GPIO.cleanup()
