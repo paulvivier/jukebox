@@ -1,12 +1,10 @@
-from gpiozero import PWMLED
+from gpiozero import LED
 from time import sleep
 
-led = PWMLED(17)
+red = LED(17)
 
 while True:
-    led.value = 0  # off
+    red.on()
     sleep(1)
-    led.value = 0.5  # half brightness
-    sleep(1)
-    led.value = 1  # full brightness
+    red.off()
     sleep(1)
