@@ -146,6 +146,107 @@ def store_local(json_data, file_prefix):
     return file_name
 
 
+# keypad diagnostics
+# Press a number on a keypad and print the pins triggered.
+def keypadMatch():
+    # This is a mapping based on the jukebox keypad circuitry
+    # Seeburg Tabletop Jukebox keypad
+    """Pins triggered in pairs based on circuitry
+    ZERO = [5, 3], [7, 2]
+    ONE = [17.3], [14, 8]
+    TWO = [15, 9], [3, 12]
+    THREE = [16, 10], [3, 13]
+    FOUR = [11, 7], [11, 10]
+    FIVE = [11, 9], [11, 10]
+    SIX = [11, 10], [11, 8]
+    SEVEN = [11, 7], [11, 8]
+    EIGHT = [9, 6], [8, 6]
+    NINE = [9, 6], [7, 6]
+    RESET = [4, 1], [4, 1]
+    """
+
+    # Summarize the list of different pins triggered for each key pressed.
+    # Buttons pushed will complete a circuit on each pair of pins.
+    # Assumes voltage applied to following pins on the keypad : 1,2,3,6,11,14,15,16
+    voltageKeys = (
+        (5, 7),  # 0
+        (8, 17),  # 1
+        (9, 12),  # 2
+        (10, 13),  # 3
+        (7, 10),  # 4
+        (9, 10),  # 5
+        (8, 10),  # 6
+        (7, 8),  # 7
+        (8, 9),  # 8
+        (7, 9),  # 9
+        (4, 4),  # Reset
+    )
+    # When the big 'click' happens, read the input pins.
+
+    # Store the input pins and see what NUMBERS match all of those pins.
+    # start by taking usr input and looking up the values to see if there are any matches.
+    # Set pinX & pinY with pin values that are "HIGH" when side "click switch" is triggered
+    pinX = 0
+    pinY = 0
+    print("Enter value of first pin triggered:")
+    pinX = int(input())
+    print("Enter value of second pin triggered:")
+    pinY = int(input())
+
+    # reset values to default
+    keys = 0
+    matchX: bool = False
+    matchY: bool = False
+
+    # Would like to rewrite this itterate automatically by the size of 'keys'
+    # and then use that position in voltageKeys[keys]
+    while keys < 11:
+        print(f"****** Checking on key: {keys}")
+        print(f"Checking match for pinX: {pinX} pinY: {pinY}")
+
+        x = voltageKeys[keys][0]
+        y = voltageKeys[keys][1]
+        print(f"Value expected for X for keypad {keys}: {x}")
+        print(f"Value expected for Y for keypad {keys}: {y}")
+
+        if pinX == x or pinY == x:
+            print(f"Match on PinY or PinY: {x}")
+            if pinX == x:
+                matchX = True
+            elif pinY == x:
+                matchY = True
+        else:
+            print("Nothing")
+
+        if pinX == y or pinY == y:
+            print(f"Match on PinY or PinY: {y}")
+            if pinX == y:
+                matchX = True
+            elif pinY == y:
+                matchY = True
+        else:
+            print(f"Nothing Found Keypad: [{keys}] ")
+            matchX = False
+            matchY = False
+
+        if pinX == 4 or pinY == 4:
+            print("********** Time for a RESET, baby ********")
+            matchX = True
+            matchY = True
+            keys = 11
+
+        if matchX == True & matchY == True:
+            print(f"********* Matchy Match on Keypad: [{keys}] **************")
+            break
+        else:
+            print("No matches")
+            keys = keys + 1
+
+    return
+
+
+# print(color.BOLD + 'Hello World !' + color.END)
+# https://stackoverflow.com/questions/8924173/how-to-print-bold-text-in-python
 class color:
     PURPLE = "\033[95m"
     CYAN = "\033[96m"
@@ -159,10 +260,6 @@ class color:
     END = "\033[0m"
 
 
-# print(color.BOLD + 'Hello World !' + color.END)
-# https://stackoverflow.com/questions/8924173/how-to-print-bold-text-in-python
-
-
 while True:
     print(color.BOLD + "\n **** Spotify CLI Commands  ****" + color.END)
     print(color.BOLD + "0" + color.END + " - Exit the console")
@@ -174,6 +271,7 @@ while True:
     print(color.BOLD + "6" + color.END + " - Resume Playback")
     print(color.BOLD + "7" + color.END + " - Save Playlist Locally")
     print(color.BOLD + "8" + color.END + " - Reset System")
+    print(color.RED + "9" + color.END + " - [Testing] Keypad entry ")
     user_input = int(input(color.BOLD + "Enter Your Choice: " + color.END))
 
     # Default - Exit
@@ -257,5 +355,10 @@ while True:
         # Specify another playlist as default while using the app
         # Dowload copy of new default playlist
 
+    elif user_input == 9:
+
+        keypadMatch()
+
     else:
+
         print("Please enter valid user-input.")
