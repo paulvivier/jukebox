@@ -1,13 +1,12 @@
 # from fileinput import filename
 # from sys import breakpointhook
-from spotipy.oauth2 import SpotifyClientCredentials
-from spotipy.oauth2 import SpotifyOAuth
-import spotipy
-from pprint import pprint
-import os
-from time import sleep
 import json
+import os
+from pprint import pprint
+from time import sleep
 
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 
 ##  TODO
 ##  Fix oAuth flow (DONE!)
@@ -16,7 +15,9 @@ import json
 ##  Specify new global device id.
 ##  Save more JSON locally for reference. Require at 'setup'. Remove ids from code.
 ##  Map Numbers 100 - 279 to playlist index
-
+##  Dowload copy of default playlist at bootup. Default is set in code.
+##  Specify another playlist as default while using the app
+##  Dowload copy of new default playlist
 
 path = "/Applications/Spotify.app"
 
@@ -88,6 +89,8 @@ def song_details(pl_id):
     print(f"Playlist Index: {playlist_track}")
     pprint(f"Track Name: {track_name} -- Track ID: {track_id}")
 
+    return track_id
+
 
 def list_devices():
     # Personal info needs reauthorizing so needs to go through OAuth.
@@ -148,7 +151,7 @@ def store_local(json_data, file_prefix):
 
 # keypad diagnostics
 # Press a number on a keypad and print the pins triggered.
-def keypadMatch():
+def keypadMatch(pinX, pinY):
     # This is a mapping based on the jukebox keypad circuitry
     # Seeburg Tabletop Jukebox keypad
     """Pins triggered in pairs based on circuitry
@@ -183,31 +186,22 @@ def keypadMatch():
     )
     # When the big 'click' happens, read the input pins.
 
-    # Store the input pins and see what NUMBERS match all of those pins.
-    # start by taking usr input and looking up the values to see if there are any matches.
+    # Send the input pins (pinX & pinY) and see what KEYPAD NUMBERS match all of those pins.
     # Set pinX & pinY with pin values that are "HIGH" when side "click switch" is triggered
-    pinX = 0
-    pinY = 0
-    print("Enter value of first pin triggered:")
-    pinX = int(input())
-    print("Enter value of second pin triggered:")
-    pinY = int(input())
 
     # reset values to default
     keys = 0
     matchX: bool = False
     matchY: bool = False
 
+    print(f"Checking match for pinX: {pinX} pinY: {pinY}")
+
     # Would like to rewrite this itterate automatically by the size of 'keys'
     # and then use that position in voltageKeys[keys]
     while keys < 11:
         print(f"****** Checking on key: {keys}")
-        print(f"Checking match for pinX: {pinX} pinY: {pinY}")
-
         x = voltageKeys[keys][0]
         y = voltageKeys[keys][1]
-        print(f"Value expected for X for keypad {keys}: {x}")
-        print(f"Value expected for Y for keypad {keys}: {y}")
 
         if pinX == x or pinY == x:
             print(f"Match on PinY or PinY: {x}")
@@ -215,8 +209,6 @@ def keypadMatch():
                 matchX = True
             elif pinY == x:
                 matchY = True
-        else:
-            print("Nothing")
 
         if pinX == y or pinY == y:
             print(f"Match on PinY or PinY: {y}")
@@ -224,25 +216,100 @@ def keypadMatch():
                 matchX = True
             elif pinY == y:
                 matchY = True
+
         else:
-            print(f"Nothing Found Keypad: [{keys}] ")
+            print(f"-------[ Nothing Found Keypad: [{keys}] ")
             matchX = False
             matchY = False
 
         if pinX == 4 or pinY == 4:
-            print("********** Time for a RESET, baby ********")
+            print("********** RESET button pushed!!  ********")
             matchX = True
             matchY = True
             keys = 11
+            return keys
 
         if matchX == True & matchY == True:
-            print(f"********* Matchy Match on Keypad: [{keys}] **************")
-            break
+            print(f"==========-  Key {keys} was pressed ! -=========")
+            return keys
         else:
-            print("No matches")
+            # increment keys
             keys = keys + 1
 
     return
+
+
+# Python program to concatenate
+# three numbers
+def numConcat(num1, num2, num3):
+    # Convert both the numbers to
+    # strings
+    num1 = str(num1)
+    num2 = str(num2)
+    num3 = str(num3)
+
+    # Concatenate the strings
+    num2 += num3
+    num1 += num2
+
+    return int(num1)
+
+
+def getSongID(digits):
+
+    # TODO: Read the cached json file instead of the API call
+    response = list_playlist(pl_id)
+    #   items.track.artists.name,
+    #   items.track.name,
+    #   items.track.id,total",
+    #   additional_types=["track"],
+
+    if digits >= 100:  # and less than 289
+        print("Jukebox number: ")
+        # modify 'digits' to map to a playlist index number
+        # My jukebox labels start at 100 and go to 279, so we have a 0-179 song playlist
+        digits = digits - 100
+
+        # Using modified 'digits', send as index number of playlist
+        track_name = response["items"][digits]["track"]["name"]
+        track_id = response["items"][digits]["track"]["id"]
+        print(f"Playlist Index: {digits}")
+        pprint(f"Track Name: {track_name} -- Track ID: {track_id}")
+
+        return track_id
+    elif digits >= 990:  # and less than or = to 999
+        print("Special number: ")
+    else:
+        print("ERROR: Selection not available.")
+
+
+# This is the Menu of actions to do with various digits
+def digitMenu(digits):
+
+    if digits >= 100 & digits < 180:
+        # Play a song
+        track_selection = getSongID(digits)
+        play_song(track_selection)
+        print(
+            color.BOLD,
+            color.GREEN + "-> Playing Song -> : " + digits + color.END,
+        )
+    elif digits < 100:
+        print(
+            color.BOLD,
+            color.RED
+            + "###### ERROR - Not a valid menu selection: "
+            + digits
+            + color.END,
+        )
+    else:
+        print(
+            color.BOLD,
+            color.RED
+            + "###### ERROR - Not (yet) a valid menu selection: "
+            + digits
+            + color.END,
+        )
 
 
 # print(color.BOLD + 'Hello World !' + color.END)
@@ -312,7 +379,7 @@ while True:
             print()
 
     elif user_input == 2:
-        song_details(pl_id)
+        track_id = song_details(pl_id)
 
     # Play Song By ID
     elif user_input == 3:
@@ -351,13 +418,58 @@ while True:
     elif user_input == 8:
 
         print("Reset System")
-        # Dowload copy of default playlist at bootup. Default is set in code.
-        # Specify another playlist as default while using the app
-        # Dowload copy of new default playlist
 
+    # Loop through this until you get 3 digits from the keypad.
     elif user_input == 9:
+        songDigits: int = 0
+        num1: str = "empty"
+        num2: str = "empty"
+        num3: str = "empty"
 
-        keypadMatch()
+        while num3 == "empty":
+            keys = 88
+            pinX = 0
+            pinY = 0
+            print(f"Digits so far: [{num1}] [{num2}] [{num3}]")
+            print("Enter value of first pin triggered:")
+            pinX = int(input())
+            print("Enter value of second pin triggered:")
+            pinY = int(input())
+
+            # Take the pin inputs and look up a matching number
+            keys = keypadMatch(pinX, pinY)
+            if keys is None:
+                keys = "empty"
+            print(f"Key pressed: {keys}")
+            if num1 != "empty":
+                if num2 != "empty":
+                    if num3 != "empty":
+                        print("Didn't think you'd make it here")
+                    else:
+                        num3 = str(keys)
+                        # print(f"num3: {num3}")
+                else:
+                    num2 = str(keys)
+                    # print(f"num2: {num2}")
+            else:
+                if keys == "11":
+                    print(color.RED + "----- Reset the song selection ----" + color.END)
+                else:
+                    num1 = str(keys)
+
+                # print(f"num1: {num1}")
+
+        print(f"We have matched on three digits: [{num1}][{num2}][{num3}]")
+        songDigits = numConcat(num1, num2, num3)
+        print(f"And now we have one three digit number: {songDigits}")
+        userChoicePlay = str(
+            input(f"Would you like to play song # {songDigits} on the playlist?(Y/N)")
+        )
+        if userChoicePlay == "Y":
+            track_selection = getSongID(songDigits)
+            play_song(track_selection)
+        else:
+            print("Canceling song selection")
 
     else:
 
