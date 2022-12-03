@@ -68,7 +68,7 @@ while True:
                     print(f"GPIO {gpio} is active")
                 else:
                     print(f"No value for GPIO:{x}")
-                    continue
+                    x = x + 1
 
     else:
         print("Please enter valid user-input.")
