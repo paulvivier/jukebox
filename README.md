@@ -8,11 +8,20 @@ The tabletop jukebox that I have has a mechanical 12 button keypad, which means 
 
 ## How to use it
 Developed on Python 3.10 
-Check the import dependencies and impore needed with pip. 
-Set your own Spotify ENV variables. 
-You'll have to get a developer signin and tie it to your premium spotify account. 
-(Sorry. I need to flesh this out with details later. ENV LABELS are in the code). 
+
+
+### Install dependancies:
+- Spotipy (note the 'py' instead of 'fy')
+    - `pip install spotipy`
+
+### Set ENV variables
+- Create an account on [Spotify's Developer site](https://developer.spotify.com/) . 
+- Link your premium spotify account to it.
+- Set up an "application" which will give you values for these three variables.
+    - `SPOTIPY_CLIENT_ID`
+    - `SPOTIPY_CLIENT_SECRET`
+    - `SPOTIPY_REDIRECT_URI`
 
 
 
-![Jukebox Image](https://photos.app.goo.gl/iwmQr76RDMvxQcQLA)
+![Jukebox Image](images/tabletop_jukebox.jpg)

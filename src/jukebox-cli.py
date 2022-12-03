@@ -11,7 +11,7 @@ from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 ##  TODO
 ##  Fix oAuth flow (DONE!)
 ##  Make menus into functions. (DONE!)
-##  Start play on device from playlist index selection
+##  Start play on device from playlist index selection (DONE!)
 ##  Specify new global device id.
 ##  Save more JSON locally for reference. Require at 'setup'. Remove ids from code.
 ##  Map Numbers 100 - 279 to playlist index
