@@ -59,16 +59,18 @@ while True:
         led = 17
 
         for x in keyPins.keys():
-            gpio = keyPins[x]
-            button = Button(gpio)
-            print(f"key:{x} -> gpio:{gpio}")  # debug
-            print(f"High/Low of {gpio}:{button}")
-            while True:
-                if button.is_pressed:
-                    print(f"GPIO {gpio} is active")
-                else:
-                    print(f"No value for GPIO:{x}")
-                    x = x + 1
+
+            while x <= keyPins.__len__():
+                gpio = keyPins[x]
+                button = Button(gpio)
+                print(f"key:{x} -> gpio:{gpio}")  # debug
+                print(f"High/Low of {gpio}:{button}")
+                while True:
+                    if button.is_pressed:
+                        print(f"GPIO {gpio} is active")
+                    else:
+                        print(f"No value for GPIO:{x}")
+                        x = x + 1
 
     else:
         print("Please enter valid user-input.")
