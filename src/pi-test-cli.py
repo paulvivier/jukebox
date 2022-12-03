@@ -62,7 +62,7 @@ while True:
             gpio = keyPins[x]
             button = Button(gpio)
             print(f"key:{x} -> gpio:{gpio}")  # debug
-            print(f"High/Low of {gpio}:{value}")
+            print(f"High/Low of {gpio}:{button}")
             while True:
                 if button.is_pressed:
                     print(f"GPIO {gpio} is active")
