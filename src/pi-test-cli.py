@@ -63,8 +63,8 @@ while True:
             for x in keyPins.keys():  # itterates through the keys (keyboard pins)
                 gpio = keyPins[x]
                 button = Button(gpio)
-                # print(f"key:{x} -> gpio:{gpio}")  # debug
-                if button.when_deactivated:
+                print(f"key:{x} -> gpio:{button}")  # debug
+                if button.is_active:
                     print(f"GPIO {gpio} is active")
                 else:
                     print(f"No value for GPIO:{x}")
