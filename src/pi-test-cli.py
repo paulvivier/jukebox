@@ -64,7 +64,8 @@ while True:
                 gpio = keyPins[x]
                 button = Button(gpio, pull_up=False)
                 # print(f"key:{x} gpio:{button}", end='')  # debug
-                button.is_active = print(f"gpio:{gpio} ", end="")
+                if button.is_pressed:
+                    print(f"gpio:{gpio} ", end="")
 
     else:
         print("Please enter valid user-input.")
