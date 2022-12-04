@@ -62,7 +62,7 @@ while True:
             print(".", end="")
             for x in keyPins.keys():  # itterates through the keys (keyboard pins)
                 gpio = keyPins[x]
-                button = Button(gpio)
+                button = Button(gpio, pull_up=False)
                 # print(f"key:{x} gpio:{button}", end='')  # debug
                 button.is_active = print(f"gpio:{gpio} ", end="")
 
