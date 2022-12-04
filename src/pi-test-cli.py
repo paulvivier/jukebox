@@ -59,13 +59,16 @@ while True:
         # led = 17
 
         while True:
-            print(".", end="")
+
             for x in keyPins.keys():  # itterates through the keys (keyboard pins)
+                print(".", end="")
                 gpio = keyPins[x]
                 button = Button(gpio, pull_up=False)
                 # print(f"key:{x} gpio:{button}", end='')  # debug
+                print(button.is_pressed)
                 if button.is_pressed:
                     print(f"gpio:{gpio} ", end="")
+            print("Repeat")
 
     else:
         print("Please enter valid user-input.")
