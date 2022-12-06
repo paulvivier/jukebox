@@ -14,7 +14,7 @@ from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 ##  Make menus into functions. (DONE!)
 ##  Start play on device from playlist index selection (DONE!)
 ##  Map pins on keypad to GPIO on raspberry pi to produce a number ()
-##  Merge changes from raspberry pi
+##  Merge changes from raspberry pi (In Progress)
 ##  Establish better thread control of on GPIO checking to prevent Segmentation Faults
 ##  Map Numbers 100 - 279 to playlist index (Done!)
 ##  Add song to Queue instead of play immediate. (keep play song fimctopm)
