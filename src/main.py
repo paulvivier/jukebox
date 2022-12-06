@@ -21,7 +21,8 @@ device_id = "3fc94b15082d6a1206c60d9f97310d37bd5032da"  # laptop
 # device_id = "78776d6cc7f769f4ea5e302aa41977e9211af158"  # phone
 
 # Default Playlist ID
-pl_id = "7D7FASC0bXRMdvfjggS0ug"
+pl_id = "7D7FASC0bXRMdvfjggS0ug"  # "Tabletop Jukebox playlist"
+
 
 # -----------------------------------------------------------------------
 # Setup calls to SpotiFy API using spotiPy.
@@ -81,7 +82,10 @@ def store_local(json_data, file_prefix):
 
 # -----------------
 # Transforms 3 digit number to various menu items.
-def user_input(digits):
+# Rename this function and move back into CLI
+
+
+def playSongByDigits(digits):
 
     # TODO: Read the cached json file instead of the API call
     response = list_playlist(pl_id)
@@ -111,8 +115,6 @@ def user_input(digits):
 
 # -----------------------------------------------------------------------
 # Play song from playlist
-
-
 def play_song(track_selection):
     # playback_uris: list[str] = ["spotify:track:6exdwZ3EOSCjb11bd6k6Np"]
 
@@ -177,14 +179,13 @@ print(
 
 # Prompts user to enter number which maps to Index of playlist.
 digits: int = int(input("Enter 3 digits [###]: "))
-track_selection = user_input(digits)
+track_selection = playSongByDigits(digits)
 play_song(track_selection)
 print(
     color.BOLD,
     color.GREEN + "-> Playing Song -> : " + track_selection + color.END,
 )
-# TODO: Seems to be requiring oath. Is that needed ^^^
-
+# TODO: Automate OATH2 validation
 
 # -----------------------------------------------------------------------
 # Take 3 digit input [990-999] for custom features
