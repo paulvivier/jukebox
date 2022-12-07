@@ -72,9 +72,7 @@ def check_all():
     faulthandler.enable()
     trigger = Button(triggerPin, pull_up=False)
     # print(trigger) debut
-    time.sleep(1)
     trigger.wait_for_press()
-
     # print("Button pressed!") #debug
     for x in keyPins.keys():  # itterates through the keys (keyboard pins)
         gpio = keyPins[x]
@@ -85,26 +83,32 @@ def check_all():
         if button.value:
             print(f"Activated: keyPadPinout:{x} - gpio:{gpio}")
             if gpio1 > 0:
-                gpio2 == gpio
+                gpio2 = gpio
+                button.close()
             else:
-                gpio1 == gpio
+                gpio1 = gpio
+                button.close()
             if gpio2 > 0:
-                trigger.close()
-                return
+
+                print("return 1")
+                time.sleep(1)
+                return gpio1, gpio2
 
     print("_______________________")
     # print("Repeat")
     trigger.close()
-    return gpio1, gpio2
+    time.sleep(1)
+    print("<ERROR> - Didn't get two pins.")
+    message = "ERR"
+    return message
 
-
-while True:
-    try:
-        triggeredPins = check_all()
-        print(f"triggeredPins: {triggeredPins}")
-        # Get voltageKeys key for matching triggeredPins
-    except:
-        user_input = input(
-            "________________________\nStopping program. Fault triggered: (RETURN)"
-        )
-        break
+    # while True:
+    #     try:
+    #         triggeredPins = check_all()
+    #         print(f"triggeredPins: {triggeredPins}")
+    #         # Get voltageKeys key for matching triggeredPins
+    #     except:
+    #         user_input = input(
+    #             "________________________\nStopping program. Fault triggered: (RETURN)"
+    #         )
+    #         break

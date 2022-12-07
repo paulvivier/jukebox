@@ -182,19 +182,33 @@ def keypadMatch(pinX, pinY):
     # Summarize the list of different pins triggered for each key pressed.
     # Buttons pushed will complete a circuit on each pair of pins.
     # Assumes voltage applied to following pins on the keypad : 1,2,3,6,11,14,15,16
-    voltageKeys = (
-        (5, 7),  # 0
-        (8, 17),  # 1
-        (9, 12),  # 2
-        (10, 13),  # 3
-        (7, 10),  # 4
-        (9, 10),  # 5
-        (8, 10),  # 6
-        (7, 8),  # 7
-        (8, 9),  # 8
-        (7, 9),  # 9
-        (4, 4),  # Reset
-    )
+    # keypadPins = (
+    #     (5, 7),  # 0
+    #     (8, 17),  # 1
+    #     (9, 12),  # 2
+    #     (10, 13),  # 3
+    #     (7, 10),  # 4
+    #     (9, 10),  # 5
+    #     (8, 10),  # 6
+    #     (7, 8),  # 7
+    #     (8, 9),  # 8
+    #     (7, 9),  # 9
+    #     (4, 4),  # Reset
+    # )
+
+    gpioToDigits = {
+        0: (20, 16),  # 0
+        1: (12, 5),  # 1
+        2: (26, 13),  # 2
+        3: (19, 6),  # 3
+        4: (16, 19),  # 4
+        5: (26, 19),  # 5
+        6: (12, 19),  # 6
+        7: (16, 12),  # 7
+        8: (12, 26),  # 8
+        9: (16, 26),  # 9
+        "R": (21, 21),  # Reset
+    }
     # When the big 'click' happens, read the input pins.
 
     # Send the input pins (pinX & pinY) and see what KEYPAD NUMBERS match all of those pins.
@@ -211,8 +225,8 @@ def keypadMatch(pinX, pinY):
     # and then use that position in voltageKeys[keys]
     while keys < 11:
         print(f"****** Checking on key: {keys}")
-        x = voltageKeys[keys][0]
-        y = voltageKeys[keys][1]
+        x = gpioToDigits[keys][0]
+        y = gpioToDigits[keys][1]
 
         if pinX == x or pinY == x:
             print(f"Match on PinY or PinY: {x}")
@@ -247,7 +261,7 @@ def keypadMatch(pinX, pinY):
             # increment keys
             keys = keys + 1
 
-    return
+    return keys
 
 
 # Python program to concatenate
@@ -323,66 +337,23 @@ def digitMenu(digits):
         )
 
 
-def pinsToDigits(pinX=0, pinY=0, manual: bool = False):
+def pinsToDigits(pinX=0, pinY=0):
     """
     Send 'pinX' and 'pinY' to be mapped to a digit (optional)
     'manual' obtains pinX and pinY
-    Waits on three digits to be entered.
-    (Currently from keyboard)
+
     Responds with three digits that map to a song number.
     """
-    songDigits: int = 0
-    num1: str = "empty"
-    num2: str = "empty"
-    num3: str = "empty"
+    keys = ""
 
-    while num3 == "empty":
-        keys = 88
+    # Sends request to keypadMatch to map to digit and waits for a key.
+    pair = keypadMatch(pinX, pinY)
+    keys = str(pair)
+    if keys is None:
+        keys = "empty"
+    print(f"Key pressed: {keys}")
 
-        if manual is True:
-
-            print(f"Digits so far: [{num1}] [{num2}] [{num3}]")
-            print("Enter value of first pin triggered:")
-            pinX = int(input())
-            print("Enter value of second pin triggered:")
-            pinY = int(input())
-
-        # Sends request to keypadMatch to map to digit and waits for a key.
-        keys = keypadMatch(pinX, pinY)
-        if keys is None:
-            keys = "empty"
-        print(f"Key pressed: {keys}")
-
-        # Loop through until you get 3 digits (num3 is full)
-        # Takes digits from left to right
-        if num1 != "empty":
-            if num2 != "empty":
-                if num3 != "empty":
-                    print("Didn't think you'd make it here")
-                else:
-                    num3 = str(keys)  # Fill the third digit last
-                    # print(f"num3: {num3}") #debug
-            else:
-                num2 = str(keys)  # Fill the second digit second
-                # print(f"num2: {num2}") #debug
-        else:
-            if keys == "11":  # 11 is the position in voltageKeys[] of the reset button
-                print(color.RED + "----- Reset the song selection ----" + color.END)
-            else:
-                num1 = str(keys)  # Fill the first digit first
-            # print(f"num1: {num1}") #debug
-
-    print(f"We have matched on three digits: [{num1}][{num2}][{num3}]")
-    songDigits = numConcat(num1, num2, num3)
-    print(f"And now we have one three digit number: {songDigits}")
-    userChoicePlay = str(
-        input(f"Would you like to play song # {songDigits} on the playlist?(Y/N)")
-    )
-    if userChoicePlay == "Y":
-        track_selection = getSongID(songDigits)
-        play_song(track_selection)
-    else:
-        print("Canceling song selection")
+    return keys
 
 
 # print(color.BOLD + 'Hello World !' + color.END)
@@ -410,8 +381,8 @@ while True:
     print(color.BOLD + "5" + color.END + " - Pause Playback")
     print(color.BOLD + "6" + color.END + " - Resume Playback")
     print(color.BOLD + "7" + color.END + " - Save Playlist Locally")
-    print(color.BOLD + "8" + color.END + " - Reset System")
-    print(color.RED + "9" + color.END + " - [Testing] Keypad entry ")
+    print(color.RED + "8" + color.END + " - [Testing] Keypad entry - refactor")
+    print(color.RED + "9" + color.END + " - [Testing] Keypad entry - old ")
     user_input = int(input(color.BOLD + "Enter Your Choice: " + color.END))
 
     # Default - Exit
@@ -489,8 +460,32 @@ while True:
         )
 
     elif user_input == 8:
+        print("Test Keypad - refactor")
+        threeNumbers: str = ""
 
-        print("Reset System")
+        while len(threeNumbers) < 3:
+            # Loop until three digits have been entered on the keypad
+            triggeredPins = keypadSeeburg.check_all()
+            print(f"triggeredPins: {triggeredPins}")
+
+            if threeNumbers != "ERR":
+                # Add each new digit to the end of the string
+                _ = pinsToDigits(triggeredPins[0], triggeredPins[1])
+                threeNumbers += _
+                print(f"threeNumbers: {threeNumbers}")
+            else:
+                print("Didnt get two pins")
+        print(f"I've got three digits! {threeNumbers}")
+
+        userChoicePlay = str(
+            input(f"Would you like to play song # {threeNumbers} on the playlist?(Y/N)")
+        )
+        songDigits = int(threeNumbers) - 101  # Spotify Playlist Index starts at 0
+        if userChoicePlay == "Y":
+            track_selection = getSongID(songDigits)
+            play_song(track_selection)
+        else:
+            print("Canceling song selection")
 
     # Loop through this until you get 3 digits from the keypad.
     elif user_input == 9:
