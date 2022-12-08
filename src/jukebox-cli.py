@@ -7,15 +7,15 @@ from time import sleep
 import spotipy
 import keypadSeeburg
 
-from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
+from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth, SpotifyPKCE
 
 ##  TODO
 ##  Fix oAuth flow (DONE!)
 ##  Make menus into functions. (DONE!)
 ##  Start play on device from playlist index selection (DONE!)
-##  Map pins on keypad to GPIO on raspberry pi to produce a number ()
-##  Merge changes from raspberry pi (Done!)
-##  Establish better thread control of on GPIO checking to prevent Segmentation Faults
+##  Map pins on keypad to GPIO on raspberry pi to produce a number (DONE!)
+##  Merge changes from raspberry pi (DONE!)
+##  Establish better thread management of on GPIO checking to prevent Segmentation Faults
 ##  Map Numbers 100 - 279 to playlist index (Done!)
 ##  Add song to Queue instead of play immediate. (keep play song fimctopm)
 ##  Special key entry to force song to play next
@@ -50,7 +50,14 @@ scope = (
 )
 # Authentication options. _May_ need to create a flow for reauthenticating.
 sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
-sp_auth = spotipy.Spotify(client_credentials_manager=SpotifyOAuth(scope=scope))
+
+# OAUTH
+# sp_auth = spotipy.Spotify(client_credentials_manager=SpotifyOAuth(scope=scope))
+
+# PKCE
+sp_auth = spotipy.Spotify(
+    client_credentials_manager=SpotifyPKCE(scope=scope, open_browser=False)
+)
 
 
 # Retrives LIVE playlist from Spotify and with desired fields
@@ -381,8 +388,8 @@ while True:
     print(color.BOLD + "5" + color.END + " - Pause Playback")
     print(color.BOLD + "6" + color.END + " - Resume Playback")
     print(color.BOLD + "7" + color.END + " - Save Playlist Locally")
-    print(color.RED + "8" + color.END + " - [Testing] Keypad entry - refactor")
-    print(color.RED + "9" + color.END + " - [Testing] Keypad entry - old ")
+    print(color.BOLD + "8" + color.END + " - Keypad entry - refactor")
+    print(color.BOLD + "9" + color.END + " - ")
     user_input = int(input(color.BOLD + "Enter Your Choice: " + color.END))
 
     # Default - Exit
@@ -489,10 +496,7 @@ while True:
 
     # Loop through this until you get 3 digits from the keypad.
     elif user_input == 9:
-        triggeredPins = keypadSeeburg.check_all()
-        print(f"triggeredPins: {triggeredPins}")
-        pinsToDigits(triggeredPins[0], triggeredPins[1])
-
+        print("Some day ... ")
     else:
 
         print("Please enter valid user-input.")
