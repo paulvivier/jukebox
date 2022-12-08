@@ -11,10 +11,12 @@ from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth, SpotifyPKCE
 
 ##  TODO
 ##  Fix oAuth flow (DONE!)
-##  Make menus into functions. (DONE!)
+##  Refactored authentication flow to work headlesss. Converted to PKCE (DONE!)
+##  Refactor: Make menus into functions. (DONE!)
 ##  Start play on device from playlist index selection (DONE!)
 ##  Map pins on keypad to GPIO on raspberry pi to produce a number (DONE!)
 ##  Merge changes from raspberry pi (DONE!)
+##  Make the Raspberry Pi actually play a Spotify stream, duh! Figure out how to install a Spotify player on Pi.
 ##  Establish better thread management of on GPIO checking to prevent Segmentation Faults
 ##  Map Numbers 100 - 279 to playlist index (Done!)
 ##  Add song to Queue instead of play immediate. (keep play song fimctopm)
@@ -55,6 +57,8 @@ sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
 # sp_auth = spotipy.Spotify(client_credentials_manager=SpotifyOAuth(scope=scope))
 
 # PKCE
+# Requires a more detailed browser authorization.
+# Produces a
 sp_auth = spotipy.Spotify(
     client_credentials_manager=SpotifyPKCE(scope=scope, open_browser=False)
 )
@@ -108,14 +112,12 @@ def song_details(pl_id):
 
 
 def list_devices():
-    # Personal info needs reauthorizing so needs to go through OAuth.
-
-    # TODO - Fancy If statment to check expiration on oauth session and NOT display this message.
+    # Services with personal info need authentication.
     print("\n************************** ")
     print(
-        "You are going to be redirected to your browser. \nCopy the URL and come back to this screen \n "
+        "Authenticating... \nIf presented with a URL, copy/paste to a browser, accept, and copy/paste final URL here. \n "
     )
-    sleep(5)
+    # sleep(1)
     res = sp_auth.devices()
     return res
     ## Responds with a list of Active devices
@@ -389,7 +391,7 @@ while True:
     print(color.BOLD + "6" + color.END + " - Resume Playback")
     print(color.BOLD + "7" + color.END + " - Save Playlist Locally")
     print(color.BOLD + "8" + color.END + " - Keypad entry - refactor")
-    print(color.BOLD + "9" + color.END + " - ")
+    print(color.BOLD + "9" + color.END + " --------------------- ")
     user_input = int(input(color.BOLD + "Enter Your Choice: " + color.END))
 
     # Default - Exit
