@@ -16,11 +16,14 @@ from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth, SpotifyPKCE
 ##  Start play on device from playlist index selection (DONE!)
 ##  Map pins on keypad to GPIO on raspberry pi to produce a number (DONE!)
 ##  Merge changes from raspberry pi (DONE!)
-##  Make the Raspberry Pi actually play a Spotify stream, duh! Figure out how to install a Spotify player on Pi.
-##  Establish better thread management of on GPIO checking to prevent Segmentation Faults
+##  Install Raspotify (https://pimylifeup.com/raspberry-pi-spotify/) (DONE!)
+##                    (https://github.com/dtcooper/raspotify/wiki/Basic-Setup-Guide) (Done!)
+##  Establish better thread management of on GPIO checking to prevent Segmentation Faults (Done!)
 ##  Map Numbers 100 - 279 to playlist index (Done!)
 ##  Add song to Queue instead of play immediate. (keep play song fimctopm)
-##  Special key entry to force song to play next
+##  Set up secret number library: 1) Force song to play.
+##  Create (automate?) full playlist
+##  Trigger lights to acknowledge key reciept. 
 ## ------ Nice to have ---
 ##
 ##  Dowload copy of default playlist at bootup. Default is set in code.
@@ -38,8 +41,10 @@ path = "/Applications/Spotify.app"
 
 
 # Device options until you can add ability to specify a different one.
-device_id = "3fc94b15082d6a1206c60d9f97310d37bd5032da"  # laptop
+# device_id = "3fc94b15082d6a1206c60d9f97310d37bd5032da"  # laptop
 # device_id = "78776d6cc7f769f4ea5e302aa41977e9211af158"  # phone
+device_id = "98bb0735e28656bac098d927d410c3138a4b5bca"  # raspotify (raspberrypi)
+
 
 # Default Playlist
 ### https://open.spotify.com/playlist/7D7FASC0bXRMdvfjggS0ug?si=05eae12ffb2b4b6b
@@ -477,7 +482,7 @@ while True:
             triggeredPins = keypadSeeburg.check_all()
             print(f"triggeredPins: {triggeredPins}")
 
-            if threeNumbers != "ERR":
+            if triggeredPins != "ERR":
                 # Add each new digit to the end of the string
                 _ = pinsToDigits(triggeredPins[0], triggeredPins[1])
                 threeNumbers += _
@@ -489,7 +494,7 @@ while True:
         userChoicePlay = str(
             input(f"Would you like to play song # {threeNumbers} on the playlist?(Y/N)")
         )
-        songDigits = int(threeNumbers) - 101  # Spotify Playlist Index starts at 0
+        songDigits = int(threeNumbers)  # Spotify Playlist Index starts at 0
         if userChoicePlay == "Y":
             track_selection = getSongID(songDigits)
             play_song(track_selection)

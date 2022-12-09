@@ -82,12 +82,21 @@ def check_all():
         # print(button.is_pressed)
         if button.value:
             print(f"Activated: keyPadPinout:{x} - gpio:{gpio}")
+
             if gpio1 > 0:
+                button2 = button
                 gpio2 = gpio
-                button.close()
+               # print("wait for release:  starting")
+               # button1.wait_for_release(timeout=5)
+               # print("Done waiting for button 1 ")
+               # button2.wait_for_release(timeout=5)
+               # print("Done waiting for button 2 ")
+                button2.close()
             else:
+                button1 = button
                 gpio1 = gpio
-                button.close()
+                button1.close()
+                trigger.close()
             if gpio2 > 0:
 
                 print("return 1")
@@ -96,8 +105,8 @@ def check_all():
 
     print("_______________________")
     # print("Repeat")
-    trigger.close()
-    time.sleep(1)
+    
+    # time.sleep(1)
     print("<ERROR> - Didn't get two pins.")
     message = "ERR"
     return message
