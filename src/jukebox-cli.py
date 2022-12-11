@@ -45,8 +45,7 @@ device_id = "98bb0735e28656bac098d927d410c3138a4b5bca"  # raspotify (raspberrypi
 
 
 # Default Playlist
-### https://open.spotify.com/playlist/7D7FASC0bXRMdvfjggS0ug?si=05eae12ffb2b4b6b
-pl_id = "7D7FASC0bXRMdvfjggS0ug"
+pl_id = "6XIloMIjXr0QCQ8VdDPp7W"
 offset = 0
 
 
