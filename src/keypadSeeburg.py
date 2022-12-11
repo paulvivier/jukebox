@@ -40,6 +40,7 @@ voltageKeys = {
 
 keyPins = {
     # keyboard pin : gpio pin
+    # 3v to these keyboard pins : 1,2,3,6,11,14,15,16
     4: 21,
     5: 20,
     7: 16,
@@ -86,11 +87,11 @@ def check_all():
             if gpio1 > 0:
                 button2 = button
                 gpio2 = gpio
-               # print("wait for release:  starting")
-               # button1.wait_for_release(timeout=5)
-               # print("Done waiting for button 1 ")
-               # button2.wait_for_release(timeout=5)
-               # print("Done waiting for button 2 ")
+                # print("wait for release:  starting")
+                # button1.wait_for_release(timeout=5)
+                # print("Done waiting for button 1 ")
+                # button2.wait_for_release(timeout=5)
+                # print("Done waiting for button 2 ")
                 button2.close()
             else:
                 button1 = button
@@ -105,7 +106,7 @@ def check_all():
 
     print("_______________________")
     # print("Repeat")
-    
+
     # time.sleep(1)
     print("<ERROR> - Didn't get two pins.")
     message = "ERR"

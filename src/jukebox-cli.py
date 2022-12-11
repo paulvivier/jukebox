@@ -367,6 +367,8 @@ def search_spotify(search_artist=None, search_song=None):
     if search_artist == None:
         search_artist = input("Artist:")
         search_song = input("Song:")
+    else:
+        print(f"Artist: '{search_artist}' - Song: '{search_song}'")
 
     sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
     search_str = "artist=" + search_artist + "&track=" + search_song
@@ -382,7 +384,7 @@ def search_spotify(search_artist=None, search_song=None):
 def makeplaylist():
     file_location = "../playlist/jukeboxplaylist.csv"
     print("CSV File format: artist, title: ")
-    playlist_id = "3yAKr0JNVsQJI4mlCTF79i"
+    playlist_id = "5LjQgv1Dbncd6AMT0DnpBb"
     print("Default playlist ID: {playlist_id} ")
     import csv
 
@@ -394,14 +396,15 @@ def makeplaylist():
                 print(f'Column names are {", ".join(row)}')
                 line_count += 1
             else:
-                print(f"\t{row[0]} --- {row[1]}")
-                results = search_spotify(search_artist=row[0], search_song=row[1])
-                print(results)
-                # input("(Return) to Continue")
+                search_artist = row[0]
+                search_song = row[1]
+                song_info = search_spotify(search_artist, search_song)
+                id = [str(song_info[1])]  # playlist_add_items requies a list
+                # print(f"id: {id}")
+                print(sp_auth.playlist_add_items(playlist_id, id))
                 sleep(2)
-                song_id = [results[1]]
-                print(song_id)
-                sp_auth.playlist_add_items(playlist_id, song_id)
+                input("(Return) to Continue")  # break to debug
+
                 line_count += 1
         list_playlist(playlist_id)
 
@@ -431,15 +434,7 @@ while True:
     print(color.BOLD + "5" + color.END + " - Pause Playback")
     print(color.BOLD + "6" + color.END + " - Resume Playback")
     print(color.BOLD + "7" + color.END + " - Save Playlist Locally")
-    print(
-        color.BOLD
-        + "8"
-        + color.END
-        + " - "
-        + color.GREEN
-        + "Select song with keypad"
-        + color.END
-    )
+    print(color.BOLD + "8" + color.END + " - " + color.GREEN + "Use keypad" + color.END)
     print(color.BOLD + "9" + color.END + " - Search for Song ")
     print(color.BOLD + "10" + color.END + " - Make Playlist from CSV ")
     user_input = int(input(color.BOLD + "Enter Your Choice: " + color.END))
