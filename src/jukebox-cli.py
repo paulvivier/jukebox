@@ -371,12 +371,17 @@ def search_spotify(search_artist=None, search_song=None):
         print(f"Artist: '{search_artist}' - Song: '{search_song}'")
 
     sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
-    search_str = "artist=" + search_artist + "&track=" + search_song
-    result = sp.search(search_str, limit=1)
+    search_str = search_artist + "\t" + search_song
+    result = sp_auth.search(search_str, limit=1)
     # pprint(result) #debug
-    track_id = result["tracks"]["items"][0]["id"]
-    track_name = result["tracks"]["items"][0]["name"]
-    track_artist = result["tracks"]["items"][0]["album"]["artists"][0]["name"]
+    try:
+        track_id = result["tracks"]["items"][0]["id"]
+        track_name = result["tracks"]["items"][0]["name"]
+        track_artist = result["tracks"]["items"][0]["album"]["artists"][0]["name"]
+    except:
+        track_id = "4cOdK2wGLETKBW3PvgPWqT"
+        track_name = "No Results"
+        track_artist = "No Results"
     print(f"{track_artist},{track_id},{track_name}")
     return track_artist, track_id, track_name
 
@@ -384,7 +389,7 @@ def search_spotify(search_artist=None, search_song=None):
 def makeplaylist():
     file_location = "../playlist/jukeboxplaylist.csv"
     print("CSV File format: artist, title: ")
-    playlist_id = "5LjQgv1Dbncd6AMT0DnpBb"
+    playlist_id = "6XIloMIjXr0QCQ8VdDPp7W"
     print("Default playlist ID: {playlist_id} ")
     import csv
 
@@ -403,7 +408,7 @@ def makeplaylist():
                 # print(f"id: {id}")
                 print(sp_auth.playlist_add_items(playlist_id, id))
                 sleep(2)
-                input("(Return) to Continue")  # break to debug
+                # input("(Return) to Continue")  # break to debug
 
                 line_count += 1
         list_playlist(playlist_id)
