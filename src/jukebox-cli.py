@@ -1,9 +1,7 @@
-# from fileinput import filename
-# from sys import breakpointhook
 import json
 import os
-from pprint import pprint
 from time import sleep
+from pprint import pprint
 import spotipy
 import keypadSeeburg
 
@@ -80,8 +78,6 @@ def list_playlist(pl_id) -> str:
     if len(response["items"]) == 0:
         print("There are no items in your playlist.")
 
-    # pprint(f"Items in Playlist: {response['items']}")
-
     ### print("Items in Response:")
     ### {'track': {'artists': [{'name': 'New Order'}],
     ###           'id': '1RSy7B2vfPi84N80QJ6frX',
@@ -105,13 +101,13 @@ def song_details(pl_id):
         input("Select playlist track # (index). Example: 0, 1, 2... : ")
     )
     if playlist_track >= len(response["items"]):
-        print("---> Selection is longer than list\n")
+        print("---> Thre aren't that many songs on the playist. Try again. \n")
         return
 
     track_name = response["items"][playlist_track]["track"]["name"]
     track_id = response["items"][playlist_track]["track"]["id"]
     print(f"Playlist Index: {playlist_track}")
-    pprint(f"Track Name: {track_name} -- Track ID: {track_id}")
+    print(f"Track Name: {track_name} -- Track ID: {track_id}")
 
     return track_id
 
@@ -142,7 +138,7 @@ def play_song(track_selection):
 
     # TODO - Print name of device ID that you're playing on.
 
-    pprint(sp_auth.start_playback(device_id, uris=playback_uris))
+    print(sp_auth.start_playback(device_id, uris=playback_uris))
     # start_playback PARMS:
     # start_playback(
     #       device_id=None,
@@ -313,7 +309,7 @@ def getSongID(digits):
         track_name = response["items"][digits]["track"]["name"]
         track_id = response["items"][digits]["track"]["id"]
         print(f"Playlist Index: {digits}")
-        pprint(f"Track Name: {track_name} -- Track ID: {track_id}")
+        print(f"Track Name: {track_name} -- Track ID: {track_id}")
 
         return track_id
     elif digits >= 990:  # and less than or = to 999
@@ -369,6 +365,35 @@ def pinsToDigits(pinX=0, pinY=0):
 
     return keys
 
+def search_spotify():
+    search_artist = input("Artist:")
+    search_song = input("Song:")
+    sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
+    search_str = "artist="+search_artist+"&track="+search_song
+    result = sp.search(search_str, limit=1 )
+    # pprint(result) #debug
+    track_id = result["tracks"]["items"][0]["id"]
+    track_name = result["tracks"]["items"][0]["name"]
+    track_artist = result["tracks"]["items"][0]["album"]["artists"][0]["name"]
+    print(f"{track_artist},{track_id},{track_name}")
+    return track_artist, track_id, track_name
+
+def makeplaylist(file_location):
+    file_location = input("CSV File format: artist, title: ")
+    import csv
+
+    with open(file_location) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        line_count = 0
+        for row in csv_reader:
+            if line_count == 0:
+                print(f'Column names are {", ".join(row)}')
+                line_count += 1
+            else:
+                print(f'\t{row[0]} --- {row[1]} .')
+                line_count += 1
+        print(f'Processed {line_count} lines.')
+
 
 # print(color.BOLD + 'Hello World !' + color.END)
 # https://stackoverflow.com/questions/8924173/how-to-print-bold-text-in-python
@@ -389,14 +414,15 @@ while True:
     print(color.BOLD + "\n **** Spotify CLI Commands  ****" + color.END)
     print(color.BOLD + "0" + color.END + " - Exit the console")
     print(color.BOLD + "1" + color.END + " - Set Playlist for Session")
-    print(color.BOLD + "2" + color.END + " - List Song on Playlist")
+    print(color.BOLD + "2" + color.END + " - List Song ID from Playlist")
     print(color.BOLD + "3" + color.END + " - Play song by ID")
-    print(color.BOLD + "4" + color.END + " - List Devices")
+    print(color.BOLD + "4" + color.END + " - Set Device")
     print(color.BOLD + "5" + color.END + " - Pause Playback")
     print(color.BOLD + "6" + color.END + " - Resume Playback")
     print(color.BOLD + "7" + color.END + " - Save Playlist Locally")
-    print(color.BOLD + "8" + color.END + " - Keypad entry - refactor")
-    print(color.BOLD + "9" + color.END + " --------------------- ")
+    print(color.BOLD + "8" + color.END + " - " + color.GREEN + "Select song with keypad" + color.END)
+    print(color.BOLD + "9" + color.END + " - Search for Song ")
+    print(color.BOLD + "10" + color.END + " - Make Playlist from CSV ")
     user_input = int(input(color.BOLD + "Enter Your Choice: " + color.END))
 
     # Default - Exit
@@ -404,40 +430,14 @@ while True:
         print("Good Bye. Have a great day!")
         break
 
-    # Update/Display Playlist
+    # Set New Playlist
     elif user_input == 1:
-        # Check locally for playlist first and display.
-        cache_files = os.listdir("cache")
-        cache_files.remove(".DS_Store")  # get rid of Macos junk
-        print(f"Files in Cache: {cache_files}")
-
-        ### Open cache file by Index #
-        ### Just checking to make sure the contents look right
-        cache_files[0] = "cache/" + cache_files[0]  # add cache/ directory prefix
-        with open(cache_files[0], "r") as read_file:
-            jsonload = json.load(read_file)
-        print(jsonload)
-
-        # Prompt - Use Local or Live playlist?
         # Post Breakup - Dumped: 6LcIWHYEZPyjx3nqdzDhuL
-        user_input2 = input("Set new playlist for session (and save locally?) Y/N:")
-        if user_input2 == "Y":
-            pl_id = input("Enter Playlist ID:")
-            response = list_playlist(pl_id)
-            pprint(f"Playlist: {response}")
-            file_prefix = "cache/playlist_" + pl_id
-            file_name2: str = store_local(response, file_prefix)
-            print(
-                color.BOLD,
-                color.GREEN + " # Stored Playlist locally #: " + file_name2 + color.END,
-            )
-            print(f"New Playlist ID has been changed to {pl_id}")
-
-        else:
-            print()
+        pl_id = input("Enter New Playlist ID:")
+        print(f"New Playlist ID has been changed to {pl_id}")
 
     elif user_input == 2:
-        track_id = song_details(pl_id)
+        track_id = (pl_id)
 
     # Play Song By ID
     elif user_input == 3:
@@ -451,8 +451,9 @@ while True:
 
     elif user_input == 4:
         # Shows devices that can be played on
-        pprint(list_devices())
-
+        print(list_devices())
+        device_id = input("Enter new device ID:")
+        
     elif user_input == 5:
         # Pauses playback
         response = sp.pause_playback(device_id)
@@ -495,7 +496,7 @@ while True:
             input(f"Would you like to play song # {threeNumbers} on the playlist?(Y/N)")
         )
         songDigits = int(threeNumbers)  # Spotify Playlist Index starts at 0
-        if userChoicePlay == "Y":
+        if userChoicePlay == "Y" | userChoicePlay == "y":
             track_selection = getSongID(songDigits)
             play_song(track_selection)
         else:
@@ -503,7 +504,13 @@ while True:
 
     # Loop through this until you get 3 digits from the keypad.
     elif user_input == 9:
-        print("Some day ... ")
+        search_spotify()
+
+    elif user_input == 10:
+        makeplaylist()
+        
+
+
     else:
 
         print("Please enter valid user-input.")
