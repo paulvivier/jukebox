@@ -8,27 +8,37 @@ import keypadSeeburg
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth, SpotifyPKCE
 
 ##  TODO
-##  Fix oAuth flow (DONE!)
-##  Refactored authentication flow to work headlesss. Converted to PKCE (DONE!)
-##  Refactor: Make menus into functions. (DONE!)
-##  Start play on device from playlist index selection (DONE!)
-##  Map pins on keypad to GPIO on raspberry pi to produce a number (DONE!)
-##  Merge changes from raspberry pi (DONE!)
-##  Install Raspotify (https://pimylifeup.com/raspberry-pi-spotify/) (DONE!)
-##                    (https://github.com/dtcooper/raspotify/wiki/Basic-Setup-Guide) (Done!)
-##  Establish better thread management of on GPIO checking to prevent Segmentation Faults (Done!)
-##  Map Numbers 100 - 279 to playlist index (Done!)
-##  Add song to Queue instead of play immediate. (keep play song fimctopm)
-##  Set up secret number library: 1) Force song to play.
-##  Create (automate?) full playlist
-##  Trigger lights to acknowledge key reciept. 
+##  (DONE!) Fix oAuth flow 
+##  (DONE!) Refactored authentication flow to work headlesss. Converted to PKCE 
+##  (DONE!) Refactor: Make menus into functions. 
+##  (DONE!) Start play on device from playlist index selection 
+##  (DONE!) Map pins on keypad to GPIO on raspberry pi to produce a number 
+##  (DONE!) Merge changes from raspberry pi 
+##  (DONE!) Install Raspotify (https://pimylifeup.com/raspberry-pi-spotify/) 
+##                    (Done!)(https://github.com/dtcooper/raspotify/wiki/Basic-Setup-Guide) 
+##  (Done!) Establish better thread management of on GPIO checking to prevent Segmentation Faults 
+##  (Done!) Map Numbers 100 - 279 to playlist index 
+##  (Done!) Create (automate?) full playlist (Menue #10)
+##  - Add song to Queue instead of play immediate. (keep playing current song)
+##  - Set up secret number library: 1) Force song to play.
+##  - Trigger lights to acknowledge key reciept. (6 lights)
+##  - Add Volume Buttons
+##  - Add Power monitoring to Pi. 
+## ------ Hardware 
+##  - Solder board for menu lights
+
+##  - Consolidate wiring to fit in jukebox. Retest. Fix Bugs (Done!) 
+##  - Get rid of hum in amplifyer. Make a Low Pass filter or get new amp.
+##  - Determine how to power LEDS for rest of box. 
 ## ------ Nice to have ---
-##
 ##  Dowload copy of default playlist at bootup. Default is set in code.
 ##  Specify another playlist as default while using the app
 ##  Dowload copy of new default playlist
 ##  Specify new global device id.
 ##  Save more JSON locally for reference. Require at 'setup'. Remove ids from code.
+## ------ Not going to do
+##  (No) Display number selected. 
+
 
 path = "/Applications/Spotify.app"
 
@@ -46,7 +56,7 @@ device_id = "98bb0735e28656bac098d927d410c3138a4b5bca"  # raspotify (raspberrypi
 
 # Default Playlist
 ### https://open.spotify.com/playlist/7D7FASC0bXRMdvfjggS0ug?si=05eae12ffb2b4b6b
-pl_id = "7D7FASC0bXRMdvfjggS0ug"
+pl_id = "6XIloMIjXr0QCQ8VdDPp7W"
 offset = 0
 
 
@@ -65,6 +75,19 @@ sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
 sp_auth = spotipy.Spotify(
     client_credentials_manager=SpotifyPKCE(scope=scope, open_browser=False)
 )
+
+# Directories to store API responses
+dirName = [
+    "cache"  # ,
+    #'json/',
+    ]
+def make_some_dirs(dirName):
+    for d in dirName:
+        if not os.path.exists(d):
+            os.mkdir(d)
+            print("./", d, " Directory Created ")
+        else:
+            print("./", d, " Directory Found")
 
 
 # Retrives LIVE playlist from Spotify and with desired fields
@@ -193,6 +216,7 @@ def keypadMatch(pinX, pinY):
     # Buttons pushed will complete a circuit on each pair of pins.
     # Assumes voltage applied to following pins on the keypad : 1,2,3,6,11,14,15,16
     # keypadPins = (
+          # Needs updating        
     #     (5, 7),  # 0
     #     (8, 17),  # 1
     #     (9, 12),  # 2
@@ -209,17 +233,16 @@ def keypadMatch(pinX, pinY):
     gpioToDigits = {
         0: (20, 16),  # 0
         1: (12, 5),  # 1
-        2: (26, 13),  # 2
-        3: (19, 6),  # 3
-        4: (16, 19),  # 4
-        5: (26, 19),  # 5
-        6: (12, 19),  # 6
+        2: (19, 13),  # 2
+        3: (26, 6),  # 3
+        4: (16, 26),  # 4
+        5: (19, 26),  # 5
+        6: (12, 26),  # 6
         7: (16, 12),  # 7
-        8: (12, 26),  # 8
-        9: (16, 26),  # 9
+        8: (12, 19),  # 8
+        9: (16, 19),  # 9
         "R": (21, 21),  # Reset
     }
-    # When the big 'click' happens, read the input pins.
 
     # Send the input pins (pinX & pinY) and see what KEYPAD NUMBERS match all of those pins.
     # Set pinX & pinY with pin values that are "HIGH" when side "click switch" is triggered
@@ -300,7 +323,7 @@ def getSongID(digits):
     #   additional_types=["track"],
 
     if digits >= 100:  # and less than 289
-        print("Jukebox number: ")
+        print("Jukebox number: {digits}")
         # modify 'digits' to map to a playlist index number
         # My jukebox labels start at 100 and go to 279, so we have a 0-179 song playlist
         digits = digits - 100
@@ -313,7 +336,7 @@ def getSongID(digits):
 
         return track_id
     elif digits >= 990:  # and less than or = to 999
-        print("Special number: ")
+        print("Special number: {digits}")
     else:
         print("ERROR: Selection not available.")
 
@@ -409,7 +432,11 @@ class color:
     UNDERLINE = "\033[4m"
     END = "\033[0m"
 
-
+# -----------------------------
+# Initialize directories
+make_some_dirs(dirName)
+# -----------------------------
+# Let's start this puppy up. 
 while True:
     print(color.BOLD + "\n **** Spotify CLI Commands  ****" + color.END)
     print(color.BOLD + "0" + color.END + " - Exit the console")
@@ -496,7 +523,7 @@ while True:
             input(f"Would you like to play song # {threeNumbers} on the playlist?(Y/N)")
         )
         songDigits = int(threeNumbers)  # Spotify Playlist Index starts at 0
-        if userChoicePlay == "Y" | userChoicePlay == "y":
+        if userChoicePlay == "Y":
             track_selection = getSongID(songDigits)
             play_song(track_selection)
         else:
