@@ -60,9 +60,7 @@ pl_id = "6XIloMIjXr0QCQ8VdDPp7W"
 offset = 0
 
 
-scope = (
-    "user-read-playback-state,user-modify-playback-state,app-remote-control,streaming"
-)
+scope = "user-read-playback-state,user-modify-playback-state,app-remote-control,streaming,playlist-modify-public"
 # Authentication options. _May_ need to create a flow for reauthenticating.
 sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
 
@@ -336,7 +334,6 @@ def getSongID(digits):
         track_id = response["items"][digits]["track"]["id"]
         print(f"Playlist Index: {digits}")
         print(f"Track Name: {track_name} -- Track ID: {track_id}")
-
         return track_id
     elif digits >= 990:  # and less than or = to 999
         print("Special number: {digits}")
@@ -391,34 +388,56 @@ def pinsToDigits(pinX=0, pinY=0):
 
     return keys
 
-def search_spotify():
-    search_artist = input("Artist:")
-    search_song = input("Song:")
+
+def search_spotify(search_artist=None, search_song=None):
+    if search_artist == None:
+        search_artist = input("Artist:")
+        search_song = input("Song:")
+    else:
+        print(f"Artist: '{search_artist}' - Song: '{search_song}'")
+
     sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
-    search_str = "artist="+search_artist+"&track="+search_song
-    result = sp.search(search_str, limit=1 )
+    search_str = search_artist + "\t" + search_song
+    result = sp_auth.search(search_str, limit=1)
     # pprint(result) #debug
-    track_id = result["tracks"]["items"][0]["id"]
-    track_name = result["tracks"]["items"][0]["name"]
-    track_artist = result["tracks"]["items"][0]["album"]["artists"][0]["name"]
+    try:
+        track_id = result["tracks"]["items"][0]["id"]
+        track_name = result["tracks"]["items"][0]["name"]
+        track_artist = result["tracks"]["items"][0]["album"]["artists"][0]["name"]
+    except:
+        track_id = "4cOdK2wGLETKBW3PvgPWqT"
+        track_name = "No Results"
+        track_artist = "No Results"
     print(f"{track_artist},{track_id},{track_name}")
     return track_artist, track_id, track_name
 
-def makeplaylist(file_location):
-    file_location = input("CSV File format: artist, title: ")
+
+def makeplaylist():
+    file_location = "../playlist/jukeboxplaylist.csv"
+    print("CSV File format: artist, title: ")
+    playlist_id = "6XIloMIjXr0QCQ8VdDPp7W"
+    print("Default playlist ID: {playlist_id} ")
     import csv
 
     with open(file_location) as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
+        csv_reader = csv.reader(csv_file, delimiter=",")
         line_count = 0
         for row in csv_reader:
             if line_count == 0:
                 print(f'Column names are {", ".join(row)}')
                 line_count += 1
             else:
-                print(f'\t{row[0]} --- {row[1]} .')
+                search_artist = row[0]
+                search_song = row[1]
+                song_info = search_spotify(search_artist, search_song)
+                id = [str(song_info[1])]  # playlist_add_items requies a list
+                # print(f"id: {id}")
+                print(sp_auth.playlist_add_items(playlist_id, id))
+                sleep(2)
+                # input("(Return) to Continue")  # break to debug
+
                 line_count += 1
-        print(f'Processed {line_count} lines.')
+        list_playlist(playlist_id)
 
 
 # print(color.BOLD + 'Hello World !' + color.END)
@@ -450,7 +469,7 @@ while True:
     print(color.BOLD + "5" + color.END + " - Pause Playback")
     print(color.BOLD + "6" + color.END + " - Resume Playback")
     print(color.BOLD + "7" + color.END + " - Save Playlist Locally")
-    print(color.BOLD + "8" + color.END + " - " + color.GREEN + "Select song with keypad" + color.END)
+    print(color.BOLD + "8" + color.END + " - " + color.GREEN + "Use keypad" + color.END)
     print(color.BOLD + "9" + color.END + " - Search for Song ")
     print(color.BOLD + "10" + color.END + " - Make Playlist from CSV ")
     user_input = int(input(color.BOLD + "Enter Your Choice: " + color.END))
@@ -484,7 +503,7 @@ while True:
         # Shows devices that can be played on
         pprint(list_devices())
         device_id = input("Enter new device ID:")
-        
+
     elif user_input == 5:
         # Pauses playback
         response = sp.pause_playback(device_id)
@@ -539,8 +558,6 @@ while True:
 
     elif user_input == 10:
         makeplaylist()
-        
-
 
     else:
 
