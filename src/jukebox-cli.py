@@ -22,11 +22,11 @@ from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth, SpotifyPKCE
 ##  - Add song to Queue instead of play immediate. (keep playing current song)
 ##  - Set up secret number library: 1) Force song to play.
 ##  - Trigger lights to acknowledge key reciept. (6 lights)
+##  - Fix Reset button . Note that Reset can use a secondary pin. (Light?)
 ##  - Add Volume Buttons
 ##  - Add Power monitoring to Pi. 
 ## ------ Hardware 
 ##  - Solder board for menu lights
-
 ##  - Consolidate wiring to fit in jukebox. Retest. Fix Bugs (Done!) 
 ##  - Get rid of hum in amplifyer. Make a Low Pass filter or get new amp.
 ##  - Determine how to power LEDS for rest of box. 
@@ -152,6 +152,8 @@ def play_song(track_selection):
 
     # Transform input into list
     new_track = f"spotify:track:{track_selection}"
+    print(f"New Track URI: {new_track}")
+    playback_uri = new_track
     playback_uris = [new_track]
 
     # Open Spotify App locally. Small delay so API can see it.
@@ -161,15 +163,16 @@ def play_song(track_selection):
 
     # TODO - Print name of device ID that you're playing on.
 
+    #print(sp_auth.add_to_queue(uri=playback_uri))
     print(sp_auth.start_playback(device_id, uris=playback_uris))
-    # start_playback PARMS:
-    # start_playback(
-    #       device_id=None,
-    #       context_uri=None,
-    #       uris=None,
-    #       offset=None,
-    #       position_ms=None
-    # )
+            # start_playback PARMS:
+            # start_playback(
+            #       device_id=None,
+            #       context_uri=None,
+            #       uris=None,
+            #       offset=None,
+            #       position_ms=None
+            # )
 
 
 def store_local(json_data, file_prefix):
@@ -464,7 +467,8 @@ while True:
         print(f"New Playlist ID has been changed to {pl_id}")
 
     elif user_input == 2:
-        track_id = (pl_id)
+        song_details(pl_id)
+        # track_id = ()
 
     # Play Song By ID
     elif user_input == 3:
@@ -478,7 +482,7 @@ while True:
 
     elif user_input == 4:
         # Shows devices that can be played on
-        print(list_devices())
+        pprint(list_devices())
         device_id = input("Enter new device ID:")
         
     elif user_input == 5:
