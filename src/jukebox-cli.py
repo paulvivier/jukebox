@@ -4,6 +4,7 @@ from time import sleep
 from pprint import pprint
 import spotipy
 import keypadSeeburg
+import textwrap
 
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth, SpotifyPKCE
 
@@ -38,6 +39,26 @@ from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth, SpotifyPKCE
 ##  Save more JSON locally for reference. Require at 'setup'. Remove ids from code.
 ## ------ Not going to do
 ##  (No) Display number selected. 
+
+def getMenuHeader():
+    print(textwrap.dedent("""\
+ _______  _______  _______  ___      _______  _______  _______  _______ 
+|       ||   _   ||  _    ||   |    |       ||       ||       ||       |
+|_     _||  |_|  || |_|   ||   |    |    ___||_     _||   _   ||    _  |
+  |   |  |       ||       ||   |    |   |___   |   |  |  | |  ||   |_| |
+  |   |  |       ||  _   | |   |___ |    ___|  |   |  |  |_|  ||    ___|
+  |   |  |   _   || |_|   ||       ||   |___   |   |  |       ||   |    
+  |___|  |__| |__||_______||_______||_______|  |___|  |_______||___|    
+     ___  __   __  ___   _  _______  _______  _______  __   __          
+    |   ||  | |  ||   | | ||       ||  _    ||       ||  |_|  |         
+    |   ||  | |  ||   |_| ||    ___|| |_|   ||   _   ||       |         
+    |   ||  |_|  ||      _||   |___ |       ||  | |  ||       |         
+ ___|   ||       ||     |_ |    ___||  _   | |  |_|  | |     |          
+|       ||       ||    _  ||   |___ | |_|   ||       ||   _   |         
+|_______||_______||___| |_||_______||_______||_______||__| |__|  
+    
+=========================================================================    
+ """))
 
 
 path = "/Applications/Spotify.app"
@@ -454,6 +475,10 @@ class color:
     UNDERLINE = "\033[4m"
     END = "\033[0m"
 
+
+# -----------------------------
+# Print Header
+getMenuHeader()
 # -----------------------------
 # Initialize directories
 make_some_dirs(dirName)
@@ -472,6 +497,7 @@ while True:
     print(color.BOLD + "8" + color.END + " - " + color.GREEN + "Use keypad" + color.END)
     print(color.BOLD + "9" + color.END + " - Search for Song ")
     print(color.BOLD + "10" + color.END + " - Make Playlist from CSV ")
+    print(color.BOLD + "11" + color.END + " - Cycle through menu lights ")
     user_input = int(input(color.BOLD + "Enter Your Choice: " + color.END))
 
     # Default - Exit
@@ -558,6 +584,26 @@ while True:
 
     elif user_input == 10:
         makeplaylist()
+
+    elif user_input == 11:
+        #print("Cycling through display lights.")
+        
+        choice = input("1] Reset\n2] Coin\n3] 1st Digit\n4] Single \n5] 2nd Digit\n6] Album\n7] Test All \n: ")
+        
+        if choice == "1":
+            keypadSeeburg.menuLights(light="reset")
+        elif choice == "2":
+            keypadSeeburg.menuLights(light="depositCoins")
+        elif choice == "3":
+            keypadSeeburg.menuLights(light="firstDigit")
+        elif choice == "4":
+            keypadSeeburg.menuLights(light="selectSingle")
+        elif choice == "5":
+            keypadSeeburg.menuLights(light="secondDigit")
+        elif choice == "6":
+            keypadSeeburg.menuLights(light="selectAlbumn")
+        elif choice == "7":
+            keypadSeeburg.menuLights(light="", test=True)
 
     else:
 

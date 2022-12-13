@@ -1,6 +1,6 @@
 import faulthandler
-from gpiozero import Button
-import time
+from gpiozero import Button, LED
+from time import sleep
 
 t = 1
 # This is a mapping based on the jukebox keypad circuitry
@@ -52,11 +52,41 @@ keyPins = {
     17: 5,
 }
 
+lightPins = {
+    "reset": 17, # Reset and ReSelect
+    "depositCoins": 27, # Deposit more coins
+    "firstDigit": 22, # 1st Digit
+    "selectSingle": 10, # Select any Single
+    "secondDigit": 9,  # 2nd Digit
+    "selectAlbumn": 11, # Select any Albumn
+}
 
-def setPins():
+def menuLights(light, test=False):
+
+    if test == True:
+        turns = 0
+        while turns < 10:    
+            for x in lightPins.keys():
+                gpio = lightPins[x]
+                # print(f"gpio: {gpio}") #debug
+                led = LED(gpio)
+                led.on()
+                sleep(.08)
+                led.off()
+            turns = turns + 1
+    else:
+        gpio = lightPins[light]
+        led = LED(gpio)
+        led.on()
+        sleep(5)
+        print(f"gpio {gpio} should light up and stay on")
+    
+
+
+def setPins(whichPins):
     print("Setting Pin defaults")
-    for x in keyPins.keys():
-        gpio = keyPins[x]
+    for x in whichPins.keys():
+        gpio = whichPins[x]
         Button(gpio, pull_up=False)
 
 
@@ -65,7 +95,7 @@ def check_all():
     Get the gpio addresses for two pins once the triggered
     switch/pin has been activated.
     """
-    setPins()
+    setPins(keyPins)
     print("### Press buttons slowly. Wait for Attempt to itterate ")
     gpio1 = 0
     gpio2 = 0
