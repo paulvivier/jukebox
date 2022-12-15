@@ -53,13 +53,17 @@ keyPins = {
 }
 
 lightPins = {
-    "reset": 17, # Reset and ReSelect
-    "depositCoins": 27, # Deposit more coins
-    "firstDigit": 22, # 1st Digit
-    "selectSingle": 10, # Select any Single
+    "reset": 17,  # Reset and ReSelect
+    "depositCoins": 27,  # Deposit more coins
+    "firstDigit": 22,  # 1st Digit
+    "selectSingle": 10,  # Select any Single
     "secondDigit": 9,  # 2nd Digit
-    "selectAlbumn": 11, # Select any Albumn
+    "selectAlbumn": 11,  # Select any Albumn
 }
+
+volumneSwitch = 23
+dashLights = 24
+
 
 def menuLights(light, test=False):
     """
@@ -70,7 +74,7 @@ def menuLights(light, test=False):
 
     if test == True:
         turns = 0
-        while turns < 10:    
+        while turns < 10:
             for x in lightPins.keys():
                 gpio = lightPins[x]
                 # print(f"gpio: {gpio}") #debug
@@ -85,7 +89,6 @@ def menuLights(light, test=False):
         led.on()
         time.sleep(5)
         print(f"gpio {gpio} should light up and stay on")
-    
 
 
 def setPins(whichPins):
