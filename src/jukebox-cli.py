@@ -21,15 +21,15 @@ from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth, SpotifyPKCE
 ##  (Done!) Map Numbers 100 - 279 to playlist index 
 ##  (Done!) Create (automate?) full playlist (Menue #10)
 ##  - Add song to Queue instead of play immediate. (keep playing current song)
-##  - Set up secret number library: 1) Force song to play.
+##  - Set up secret number library: 1) Force song to play 2) shutdown
 ##  - Trigger lights to acknowledge key reciept. (6 lights)
 ##  - Fix Reset button . Note that Reset can use a secondary pin. (Light?)
 ##  - Add Volume Buttons
 ##  - Add Power monitoring to Pi. 
 ## ------ Hardware 
-##  - Solder board for menu lights
-##  - Consolidate wiring to fit in jukebox. Retest. Fix Bugs (Done!) 
-##  - Get rid of hum in amplifyer. Make a Low Pass filter or get new amp.
+##  (DONE!) Solder board for menu lights
+##  (DONE!) Consolidate wiring to fit in jukebox. Retest. Fix Bugs 
+##  (DONE!) Get rid of hum in amplifyer. (used a better power supply)
 ##  - Determine how to power LEDS for rest of box. 
 ## ------ Nice to have ---
 ##  Dowload copy of default playlist at bootup. Default is set in code.
@@ -564,19 +564,37 @@ while True:
                 _ = pinsToDigits(triggeredPins[0], triggeredPins[1])
                 threeNumbers += _
                 print(f"threeNumbers: {threeNumbers}")
+                if len(threeNumbers) == 1:
+                    keypadSeeburg.menuLights(light="firstDigit")
+                elif len(threeNumbers) == 2:
+                    keypadSeeburg.menuLights(light="secondDigit")
+
             else:
                 print("Didnt get two pins")
+                if len(threeNumbers) == 1:
+                    keypadSeeburg.menuLights(light="firstDigit")
+                elif len(threeNumbers) == 2:
+                    keypadSeeburg.menuLights(light="secondDigit")
+
         print(f"I've got three digits! {threeNumbers}")
 
-        userChoicePlay = str(
-            input(f"Would you like to play song # {threeNumbers} on the playlist?(Y/N)")
-        )
+        # [Debug] - Swap this out with the shorter section below to be able to decline.
+        # userChoicePlay = str(
+        #     input(f"Would you like to play song # {threeNumbers} on the playlist?(Y/N)")
+        # )
+        # songDigits = int(threeNumbers)  # Spotify Playlist Index starts at 0
+        # if userChoicePlay == "Y":
+        #     track_selection = getSongID(songDigits)
+        #     play_song(track_selection)
+        # else:
+        #     print("Canceling song selection")
+
         songDigits = int(threeNumbers)  # Spotify Playlist Index starts at 0
-        if userChoicePlay == "Y":
-            track_selection = getSongID(songDigits)
-            play_song(track_selection)
-        else:
-            print("Canceling song selection")
+        track_selection = getSongID(songDigits)
+        play_song(track_selection)
+
+
+
 
     # Loop through this until you get 3 digits from the keypad.
     elif user_input == 9:

@@ -1,6 +1,6 @@
 import faulthandler
 from gpiozero import Button, LED
-from time import sleep
+import time
 
 t = 1
 # This is a mapping based on the jukebox keypad circuitry
@@ -62,6 +62,11 @@ lightPins = {
 }
 
 def menuLights(light, test=False):
+    """
+    Takes a key value of lightPins{} as _light_ parameter and 
+    turns it on. Will also test blinking all lights if test=TRUE and lights=""
+
+    """
 
     if test == True:
         turns = 0
@@ -71,14 +76,14 @@ def menuLights(light, test=False):
                 # print(f"gpio: {gpio}") #debug
                 led = LED(gpio)
                 led.on()
-                sleep(.08)
+                time.sleep(.08)
                 led.off()
             turns = turns + 1
     else:
         gpio = lightPins[light]
         led = LED(gpio)
         led.on()
-        sleep(5)
+        time.sleep(5)
         print(f"gpio {gpio} should light up and stay on")
     
 
