@@ -3,6 +3,7 @@ from gpiozero import Button, LED
 import time
 import subprocess
 
+
 t = 1
 # This is a mapping based on the jukebox keypad circuitry
 # Seeburg Tabletop Jukebox keypad
@@ -97,20 +98,23 @@ def menuLights(light, state, test=False):
                 led.off()
             turns = turns + 1
 
-    else:
+    elif len(state) == 2 :
         gpio = lightPins[light]
-        print(f"gpio: {gpio}")
+        # print(f"gpio: {gpio}")
         gpio_str = str(gpio)
-        print(f"gpio_str: {gpio_str}")
+        # print(f"gpio_str: {gpio_str}")
         # led.on()
-        arg = ['raspi-gpio', 'set', 'op', 'dh']
+        arg = ['raspi-gpio', 'set', 'op']
         arg.insert(2, gpio_str)
+        arg.insert(5, state)
         print (arg)
-        # arg = ["raspi-gpio", "set", led, "op", "dh"] # faster 
-        turnon = subprocess.run(arg, capture_output=True)
-        print(turnon.stdout, turnon.stderr)
+        ## arg should look like = ["raspi-gpio", "set", led, "op", "dh"] 
+        ## raspi-gpio is faster and enables the light to stay on past gpio threads.
+        ## apparently more dangerous too so ... who knows what I'll mess up.
+        setLed = subprocess.run(arg, capture_output=True)
+        print(setLed.stdout, setLed.stderr)
         # time.sleep(5)
-        print(f"gpio {gpio} should light up and stay on")
+        print(f"gpio {gpio_str} was set to {state} ")
 
 
 def setPins(whichPins):
@@ -119,21 +123,88 @@ def setPins(whichPins):
         gpio = whichPins[x]
         Button(gpio, pull_up=False)
 
-
-def check_all():
+def quickcheck_all():
     """
     Get the gpio addresses for two pins once the triggered
     switch/pin has been activated.
     """
     setPins(keyPins)
     print("### Press buttons slowly. Wait for Attempt to itterate ")
-    gpio1 = 0
-    gpio2 = 0
+    gpios=[]
     triggerPin = 25
-    faulthandler.enable()
+#    faulthandler.enable()
     trigger = Button(triggerPin, pull_up=False)
     # print(trigger) debut
     trigger.wait_for_press()
+    tic = time.perf_counter()
+    # print("Button pressed!") #debug
+    for x in keyPins.keys():  # itterates through the keys (keyboard pins)
+        gpio = keyPins[x]
+        print(f"gpio: {gpio}")
+        print(f"gpios: {gpios}")
+        button = Button(gpio, pull_up=False)
+        if button.value == 1:
+            gpios.append(gpio)
+            button.close()
+            continue
+        if len(gpios) == 2:
+            print("Returning gpios: {gpios}")
+            return gpios
+
+
+        
+    
+
+    #     if button.value:
+    #         print(f"Activated: keyPadPinout:{x} - gpio:{gpio}")
+
+    #         if gpio1 > 0:
+    #             button2 = button
+    #             gpio2 = gpio
+    #             # print("wait for release:  starting")
+    #             # button1.wait_for_release(timeout=5)
+    #             # print("Done waiting for button 1 ")
+    #             # button2.wait_for_release(timeout=5)
+    #             # print("Done waiting for button 2 ")
+    #             button2.close()
+    #         else:
+    #             button1 = button
+    #             gpio1 = gpio
+    #             button1.close()
+    #             trigger.close()
+    #         if gpio2 > 0:
+
+    #             print("return 1")
+    #             time.sleep(1)
+    #             toc = time.perf_counter()
+    #             print(f"check_all() in {toc - tic:0.4f} seconds")
+    #             return gpio1, gpio2
+
+    # print("_______________________")
+    # # print("Repeat")
+
+    # # time.sleep(1)
+    # print("<ERROR> - Didn't get two pins.")
+    # message = "ERR"
+    # return message
+
+
+
+def check_all():
+    """
+    Get the gpio addresses for two pins once the triggered
+    switch/pin has been activated.
+    """
+    #setPins(keyPins)
+    print("### Press buttons slowly. Wait for Attempt to itterate ")
+    gpio1 = 0
+    gpio2 = 0
+    triggerPin = 25
+#    faulthandler.enable()
+    trigger = Button(triggerPin, pull_up=False)
+    # print(trigger) debut
+    trigger.wait_for_press()
+    tic = time.perf_counter()
     # print("Button pressed!") #debug
     for x in keyPins.keys():  # itterates through the keys (keyboard pins)
         gpio = keyPins[x]
@@ -162,6 +233,8 @@ def check_all():
 
                 print("return 1")
                 time.sleep(1)
+                toc = time.perf_counter()
+                print(f"check_all() in {toc - tic:0.4f} seconds")
                 return gpio1, gpio2
 
     print("_______________________")

@@ -528,9 +528,10 @@ while True:
     print(color.BOLD + "8" + color.END + " - " + color.GREEN + "Use keypad" + color.END)
     print(color.BOLD + "9" + color.END + " - Search for Song ")
     print(color.BOLD + "10" + color.END + " - Make Playlist from CSV (only need Artist,Title) ")
-    print(color.BOLD + "11" + color.END + " - Test lights ")
-    print(color.BOLD + "12" + color.END + " - Test loud/quiet button")
-    print(color.BOLD + "13" + color.END + " - Initialize starting lights")
+    print(color.BOLD + "11" + color.END + " - Turn Lights On ")
+    print(color.BOLD + "12" + color.END + " - Turn Lights Off ")
+    print(color.BOLD + "13" + color.END + " - Test loud/quiet button")
+    print(color.BOLD + "14" + color.END + " - Initialize starting lights")
     user_input = int(input(color.BOLD + "Enter Your Choice: " + color.END))
 
     # Default - Exit
@@ -590,6 +591,7 @@ while True:
         while len(threeNumbers) < 3:
             # Loop until three digits have been entered on the keypad
             triggeredPins = keypadSeeburg.check_all()
+
             print(f"triggeredPins: {triggeredPins}")
 
             if triggeredPins != "ERR":
@@ -605,9 +607,9 @@ while True:
             else:
                 print("Didnt get two pins")
                 if len(threeNumbers) == 1:
-                    keypadSeeburg.menuLights(light="firstDigit")
+                    keypadSeeburg.menuLights(light="firstDigit", state="dh")
                 elif len(threeNumbers) == 2:
-                    keypadSeeburg.menuLights(light="secondDigit")
+                    keypadSeeburg.menuLights(light="secondDigit", state="dh")
 
         print(f"I've got three digits! {threeNumbers}")
 
@@ -625,9 +627,9 @@ while True:
         songDigits = int(threeNumbers)  # Spotify Playlist Index starts at 0
         track_selection = getSongID(songDigits)
         play_song(track_selection)
-
-
-
+        print("Song played. Turn off lights")
+        keypadSeeburg.menuLights(light="firstDigit", state="dl")
+        keypadSeeburg.menuLights(light="secondDigit", state="dl")
 
     # Loop through this until you get 3 digits from the keypad.
     elif user_input == 9:
@@ -659,12 +661,34 @@ while True:
             keypadSeeburg.menuLights(light="", test=True)
 
     elif user_input == 12:
+        #print("Turn Lights Off.")
+        
+        choice = input("1] Reset\n2] Coin\n3] 1st Digit\n4] Single \n5] 2nd Digit\n6] Album\n7] Dash\n8] Test All \n: ")
+        
+        if choice == "1":
+            keypadSeeburg.menuLights(light="reset", state="dl")
+        elif choice == "2":
+            keypadSeeburg.menuLights(light="depositCoins", state="dl")
+        elif choice == "3":
+            keypadSeeburg.menuLights(light="firstDigit", state="dl")
+        elif choice == "4":
+            keypadSeeburg.menuLights(light="selectSingle", state="dl")
+        elif choice == "5":
+            keypadSeeburg.menuLights(light="secondDigit", state="dl")
+        elif choice == "6":
+            keypadSeeburg.menuLights(light="selectAlbumn", state="dl")
+        elif choice == "7":
+            keypadSeeburg.menuLights(light="dashLights", state="dl")
+        elif choice == "8":
+            keypadSeeburg.menuLights(light="", test=True)
+    
+    elif user_input == 13:
         if keypadSeeburg.checkLoud() == True:
                 setVolume(level=1)
         else:
                 setVolume(level=0)
 
-    elif user_input ==13:
+    elif user_input ==14:
         init_lights()
 
     else:
