@@ -5,6 +5,7 @@ from pprint import pprint
 import spotipy
 import keypadSeeburg
 import textwrap
+import subprocess
 
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth, SpotifyPKCE
 
@@ -20,17 +21,19 @@ from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth, SpotifyPKCE
 ##  (Done!) Establish better thread management of on GPIO checking to prevent Segmentation Faults 
 ##  (Done!) Map Numbers 100 - 279 to playlist index 
 ##  (Done!) Create (automate?) full playlist (Menue #10)
+##  - Make initialization script which will continuously run.
+##  - Refactor button matching to go faster
 ##  - Add song to Queue instead of play immediate. (keep playing current song)
 ##  - Set up secret number library: 1) Force song to play 2) shutdown
-##  - Trigger lights to acknowledge key reciept. (6 lights)
+##  (Done!)Trigger lights to acknowledge key reciept. (6 lights)
 ##  - Fix Reset button . Note that Reset can use a secondary pin. (Light?)
-##  - Add Volume Buttons
+##  (Done!) Add Volume Buttons
 ##  - Add Power monitoring to Pi. 
 ## ------ Hardware 
 ##  (DONE!) Solder board for menu lights
 ##  (DONE!) Consolidate wiring to fit in jukebox. Retest. Fix Bugs 
 ##  (DONE!) Get rid of hum in amplifyer. (used a better power supply)
-##  - Determine how to power LEDS for rest of box. 
+##  (DONE!) Determine how to power LEDS for rest of box. 
 ## ------ Nice to have ---
 ##  Dowload copy of default playlist at bootup. Default is set in code.
 ##  Specify another playlist as default while using the app
@@ -108,6 +111,16 @@ def make_some_dirs(dirName):
         else:
             print("./", d, " Directory Found")
 
+def init_lights():
+    try:
+        arg = ["raspi-gpio", "set", "27", "op", "dh"]
+        turnon = subprocess.run(arg, capture_output=True)
+        print(turnon.stdout, stderr)
+        arg = ["raspi-gpio", "set", "23", "op", "dh"]
+        turnon = subprocess.run(arg, capture_output=True)
+        print(turnon.stdout, stderr)
+    except:
+        print("ERROR: Problem initializing lights")
 
 # Retrives LIVE playlist from Spotify and with desired fields
 def list_playlist(pl_id) -> str:
@@ -210,6 +223,20 @@ def store_local(json_data, file_prefix):
     print(jsonload)
     # Stores json respones locally for faster loading.
     return file_name
+
+
+
+def setVolume(level):    
+    # Sets Spotify device to "soft" or "loud"
+
+    if level == 1:
+        sp_auth.volume(device_id=device_id, volume_percent=70)
+    elif level == 0:
+        sp_auth.volume(device_id=device_id, volume_percent=40)
+    else:
+        print("Error on setting")
+    print(sp_auth.volume(device_id))
+
 
 
 def keypadMatch(pinX, pinY):
@@ -477,12 +504,16 @@ class color:
 
 
 # -----------------------------
-# Print Header
+#  Print Header
 getMenuHeader()
 # -----------------------------
-# Initialize directories
+#  Initialize directories
 make_some_dirs(dirName)
 # -----------------------------
+#  Set some pins defaults:
+# raspi-gpio set 23 op dh  # Dashlights
+# raspi-gpio set 27 op dh  # Deposit More Coins
+
 # Let's start this puppy up. 
 while True:
     print(color.BOLD + "\n **** Spotify CLI Commands  ****" + color.END)
@@ -496,8 +527,10 @@ while True:
     print(color.BOLD + "7" + color.END + " - Save Playlist Locally")
     print(color.BOLD + "8" + color.END + " - " + color.GREEN + "Use keypad" + color.END)
     print(color.BOLD + "9" + color.END + " - Search for Song ")
-    print(color.BOLD + "10" + color.END + " - Make Playlist from CSV ")
-    print(color.BOLD + "11" + color.END + " - Cycle through menu lights ")
+    print(color.BOLD + "10" + color.END + " - Make Playlist from CSV (only need Artist,Title) ")
+    print(color.BOLD + "11" + color.END + " - Test lights ")
+    print(color.BOLD + "12" + color.END + " - Test loud/quiet button")
+    print(color.BOLD + "13" + color.END + " - Initialize starting lights")
     user_input = int(input(color.BOLD + "Enter Your Choice: " + color.END))
 
     # Default - Exit
@@ -565,9 +598,9 @@ while True:
                 threeNumbers += _
                 print(f"threeNumbers: {threeNumbers}")
                 if len(threeNumbers) == 1:
-                    keypadSeeburg.menuLights(light="firstDigit")
+                    keypadSeeburg.menuLights(light="firstDigit", state="dh")
                 elif len(threeNumbers) == 2:
-                    keypadSeeburg.menuLights(light="secondDigit")
+                    keypadSeeburg.menuLights(light="secondDigit", state="dh")
 
             else:
                 print("Didnt get two pins")
@@ -606,22 +639,33 @@ while True:
     elif user_input == 11:
         #print("Cycling through display lights.")
         
-        choice = input("1] Reset\n2] Coin\n3] 1st Digit\n4] Single \n5] 2nd Digit\n6] Album\n7] Test All \n: ")
+        choice = input("1] Reset\n2] Coin\n3] 1st Digit\n4] Single \n5] 2nd Digit\n6] Album\n7] Dash\n8] Test All \n: ")
         
         if choice == "1":
-            keypadSeeburg.menuLights(light="reset")
+            keypadSeeburg.menuLights(light="reset", state="dh")
         elif choice == "2":
-            keypadSeeburg.menuLights(light="depositCoins")
+            keypadSeeburg.menuLights(light="depositCoins", state="dh")
         elif choice == "3":
-            keypadSeeburg.menuLights(light="firstDigit")
+            keypadSeeburg.menuLights(light="firstDigit", state="dh")
         elif choice == "4":
-            keypadSeeburg.menuLights(light="selectSingle")
+            keypadSeeburg.menuLights(light="selectSingle", state="dh")
         elif choice == "5":
-            keypadSeeburg.menuLights(light="secondDigit")
+            keypadSeeburg.menuLights(light="secondDigit", state="dh")
         elif choice == "6":
-            keypadSeeburg.menuLights(light="selectAlbumn")
+            keypadSeeburg.menuLights(light="selectAlbumn", state="dh")
         elif choice == "7":
+            keypadSeeburg.menuLights(light="dashLights", state="dh")
+        elif choice == "8":
             keypadSeeburg.menuLights(light="", test=True)
+
+    elif user_input == 12:
+        if keypadSeeburg.checkLoud() == True:
+                setVolume(level=1)
+        else:
+                setVolume(level=0)
+
+    elif user_input ==13:
+        init_lights()
 
     else:
 

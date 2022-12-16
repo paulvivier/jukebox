@@ -1,6 +1,7 @@
 import faulthandler
 from gpiozero import Button, LED
 import time
+import subprocess
 
 t = 1
 # This is a mapping based on the jukebox keypad circuitry
@@ -55,20 +56,32 @@ keyPins = {
 lightPins = {
     "reset": 17,  # Reset and ReSelect
     "depositCoins": 27,  # Deposit more coins
-    "firstDigit": 22,  # 1st Digit
+    "firstDigit": 9,  # 1st Digit
     "selectSingle": 10,  # Select any Single
-    "secondDigit": 9,  # 2nd Digit
-    "selectAlbumn": 11,  # Select any Albumn
+    "secondDigit": 11,  # 2nd Digit
+    "selectAlbumn": 22,  # Select any Albumn
+    "dashLights": 23, # dashLights
 }
 
-volumneSwitch = 23
-dashLights = 24
 
 
-def menuLights(light, test=False):
+def checkLoud(gpio=24): #checks the state of the button
+    #GPIO 24 for "Loud" volume button
+    volume_loud = Button(gpio, pull_up=True)
+
+    print(f"volume_loud: {volume_loud}")
+    if volume_loud.is_pressed == 1:
+        print(f"LOUD!! volume_loud: {volume_loud} ")
+        return True
+    if volume_loud.is_pressed == 0:
+        print(f"_soft_(shhh!) volume_loud: {volume_loud} ")
+        return False
+
+def menuLights(light, state, test=False):
     """
     Takes a key value of lightPins{} as _light_ parameter and 
     turns it on. Will also test blinking all lights if test=TRUE and lights=""
+    state = dh|dl (output or input), ""
 
     """
 
@@ -83,11 +96,20 @@ def menuLights(light, test=False):
                 time.sleep(.08)
                 led.off()
             turns = turns + 1
+
     else:
         gpio = lightPins[light]
-        led = LED(gpio)
-        led.on()
-        time.sleep(5)
+        print(f"gpio: {gpio}")
+        gpio_str = str(gpio)
+        print(f"gpio_str: {gpio_str}")
+        # led.on()
+        arg = ['raspi-gpio', 'set', 'op', 'dh']
+        arg.insert(2, gpio_str)
+        print (arg)
+        # arg = ["raspi-gpio", "set", led, "op", "dh"] # faster 
+        turnon = subprocess.run(arg, capture_output=True)
+        print(turnon.stdout, turnon.stderr)
+        # time.sleep(5)
         print(f"gpio {gpio} should light up and stay on")
 
 
