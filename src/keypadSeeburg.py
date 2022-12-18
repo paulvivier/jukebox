@@ -39,6 +39,10 @@ voltageKeys = {
     9: (7, 9),  # 9
     "R": (4, 4),  # Reset
 }
+# troubleshooting problem with 
+#  #2 - Triggering gpio 19 & not gpio 13 from keypadPin 9 & 12
+#  #R - Not triggering anything - should be triggering gpio 21
+
 
 keyPins = {
     # keyboard pin : gpio pin
@@ -47,10 +51,10 @@ keyPins = {
     5: 20,
     7: 16,
     8: 12,
-    9: 26,
-    10: 19,
+    9: 19,
+    10: 26,
     12: 13,
-    13: 6,  # test
+    13: 6,  
     17: 5,
 }
 
@@ -152,50 +156,13 @@ def quickcheck_all():
             return gpios
 
 
-        
-    
-
-    #     if button.value:
-    #         print(f"Activated: keyPadPinout:{x} - gpio:{gpio}")
-
-    #         if gpio1 > 0:
-    #             button2 = button
-    #             gpio2 = gpio
-    #             # print("wait for release:  starting")
-    #             # button1.wait_for_release(timeout=5)
-    #             # print("Done waiting for button 1 ")
-    #             # button2.wait_for_release(timeout=5)
-    #             # print("Done waiting for button 2 ")
-    #             button2.close()
-    #         else:
-    #             button1 = button
-    #             gpio1 = gpio
-    #             button1.close()
-    #             trigger.close()
-    #         if gpio2 > 0:
-
-    #             print("return 1")
-    #             time.sleep(1)
-    #             toc = time.perf_counter()
-    #             print(f"check_all() in {toc - tic:0.4f} seconds")
-    #             return gpio1, gpio2
-
-    # print("_______________________")
-    # # print("Repeat")
-
-    # # time.sleep(1)
-    # print("<ERROR> - Didn't get two pins.")
-    # message = "ERR"
-    # return message
-
-
 
 def check_all():
     """
     Get the gpio addresses for two pins once the triggered
     switch/pin has been activated.
     """
-    #setPins(keyPins)
+    setPins(keyPins)
     print("### Press buttons slowly. Wait for Attempt to itterate ")
     gpio1 = 0
     gpio2 = 0
@@ -209,29 +176,20 @@ def check_all():
     for x in keyPins.keys():  # itterates through the keys (keyboard pins)
         gpio = keyPins[x]
         button = Button(gpio, pull_up=False)
-        # print(f"{x},", end="")
-        # print(f"Checking key:{x} gpio:{gpio}", end="")  # debug
-        # print(button.is_pressed)
         if button.value:
             print(f"Activated: keyPadPinout:{x} - gpio:{gpio}")
 
             if gpio1 > 0:
                 button2 = button
                 gpio2 = gpio
-                # print("wait for release:  starting")
-                # button1.wait_for_release(timeout=5)
-                # print("Done waiting for button 1 ")
-                # button2.wait_for_release(timeout=5)
-                # print("Done waiting for button 2 ")
                 button2.close()
             else:
                 button1 = button
                 gpio1 = gpio
                 button1.close()
                 trigger.close()
+                if x == 4: gpio2 = gpio
             if gpio2 > 0:
-
-                print("return 1")
                 time.sleep(1)
                 toc = time.perf_counter()
                 print(f"check_all() in {toc - tic:0.4f} seconds")

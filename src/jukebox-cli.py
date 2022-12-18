@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from time import sleep
 from pprint import pprint
 import spotipy
@@ -21,7 +22,7 @@ from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth, SpotifyPKCE
 ##  (Done!) Establish better thread management of on GPIO checking to prevent Segmentation Faults 
 ##  (Done!) Map Numbers 100 - 279 to playlist index 
 ##  (Done!) Create (automate?) full playlist (Menue #10)
-##  - Make initialization script which will continuously run.
+##  - Make __init__  which will set up lights and contiunally look for key entries
 ##  - Refactor button matching to go faster
 ##  - Add song to Queue instead of play immediate. (keep playing current song)
 ##  - Set up secret number library: 1) Force song to play 2) shutdown
@@ -115,10 +116,10 @@ def init_lights():
     try:
         arg = ["raspi-gpio", "set", "27", "op", "dh"]
         turnon = subprocess.run(arg, capture_output=True)
-        print(turnon.stdout, stderr)
+        print(turnon.stdout, turnon.stderr)
         arg = ["raspi-gpio", "set", "23", "op", "dh"]
         turnon = subprocess.run(arg, capture_output=True)
-        print(turnon.stdout, stderr)
+        print(turnon.stdout, turnon.stderr)
     except:
         print("ERROR: Problem initializing lights")
 
@@ -180,31 +181,18 @@ def list_devices():
 
 
 def play_song(track_selection):
-    # playback_uris: list[str] = ["spotify:track:6exdwZ3EOSCjb11bd6k6Np"]
-
-    # Transform input into list
-    new_track = f"spotify:track:{track_selection}"
-    print(f"New Track URI: {new_track}")
-    playback_uri = new_track
-    playback_uris = [new_track]
-
-    # Open Spotify App locally. Small delay so API can see it.
-    # Comment out for faster testing during development
-    # os.system(f"open {path}")
-    # sleep(5)
+    # Playing song by selecting position and context of the playlist
+    # This will make the jukebox keep playing through the playlist.
+    context_uri = f"spotify:playlist:{pl_id}"
+    offset = {'position' : track_selection}
+    # print(f"context_uri = {context_uri}") #debug
+    # print(f"offset = {offset}") #debug
+    # print(f"device_id = {device_id}") #debug
+    uris=None
+    send=sp_auth.start_playback(device_id, context_uri, uris, offset)
+    print(send)
 
     # TODO - Print name of device ID that you're playing on.
-
-    #print(sp_auth.add_to_queue(uri=playback_uri))
-    print(sp_auth.start_playback(device_id, uris=playback_uris))
-            # start_playback PARMS:
-            # start_playback(
-            #       device_id=None,
-            #       context_uri=None,
-            #       uris=None,
-            #       offset=None,
-            #       position_ms=None
-            # )
 
 
 def store_local(json_data, file_prefix):
@@ -245,6 +233,9 @@ def keypadMatch(pinX, pinY):
     it matches to and returns that digit.
 
     """
+    tic = time.perf_counter()
+    
+
     # This is a mapping based on the jukebox keypad circuitry
     # Seeburg Tabletop Jukebox keypad
     """Pins triggered in pairs based on circuitry
@@ -306,7 +297,7 @@ def keypadMatch(pinX, pinY):
     # Would like to rewrite this itterate automatically by the size of 'keys'
     # and then use that position in voltageKeys[keys]
     while keys < 11:
-        print(f"****** Checking on key: {keys}")
+        # print(f"****** Checking on key: {keys}") #debug
         x = gpioToDigits[keys][0]
         y = gpioToDigits[keys][1]
 
@@ -316,6 +307,9 @@ def keypadMatch(pinX, pinY):
                 matchX = True
             elif pinY == x:
                 matchY = True
+        elif pinX == x and pinY == x:
+            matchX = True
+            matchY = True
 
         if pinX == y or pinY == y:
             print(f"Match on PinY or PinY: {y}")
@@ -323,13 +317,12 @@ def keypadMatch(pinX, pinY):
                 matchX = True
             elif pinY == y:
                 matchY = True
-
         else:
-            print(f"-------[ Nothing Found Keypad: [{keys}] ")
+            # print(f"-------[ Nothing Found Keypad: [{keys}] ") # debug
             matchX = False
             matchY = False
 
-        if pinX == 4 or pinY == 4:
+        if pinX == gpioToDigits["R"][0]: 
             print("********** RESET button pushed!!  ********")
             matchX = True
             matchY = True
@@ -338,6 +331,8 @@ def keypadMatch(pinX, pinY):
 
         if matchX == True & matchY == True:
             print(f"==========-  Key {keys} was pressed ! -=========")
+            toc = time.perf_counter()
+            print(f"check_all() in {toc - tic:0.4f} seconds")
             return keys
         else:
             # increment keys
@@ -371,8 +366,8 @@ def getSongID(digits):
     #   items.track.id,total",
     #   additional_types=["track"],
 
-    if digits >= 100:  # and less than 289
-        print("Jukebox number: {digits}")
+    if digits >= 100 and digits < 289:  # and less than 289
+        print(f"Jukebox number: {digits}")
         # modify 'digits' to map to a playlist index number
         # My jukebox labels start at 100 and go to 279, so we have a 0-179 song playlist
         digits = digits - 100
@@ -392,20 +387,20 @@ def getSongID(digits):
 # This is the Menu of actions to do with various digits
 def digitMenu(digits):
 
-    if digits >= 100 & digits < 180:
+    if digits >= 100 and digits < 289:
         # Play a song
         track_selection = getSongID(digits)
         play_song(track_selection)
         print(
             color.BOLD,
-            color.GREEN + "-> Playing Song -> : " + digits + color.END,
+            color.GREEN + "-> Playing Song -> : " + str(digits) + color.END,
         )
     elif digits < 100:
         print(
             color.BOLD,
             color.RED
             + "###### ERROR - Not a valid menu selection: "
-            + digits
+            + str(digits)
             + color.END,
         )
     else:
@@ -413,7 +408,7 @@ def digitMenu(digits):
             color.BOLD,
             color.RED
             + "###### ERROR - Not (yet) a valid menu selection: "
-            + digits
+            + str(digits)
             + color.END,
         )
 
@@ -436,6 +431,14 @@ def pinsToDigits(pinX=0, pinY=0):
 
     return keys
 
+def set_repeat(state):
+    """
+    state - track, context, or off
+    device_id - device target for playback
+    """
+    result = sp_auth.repeat(state, device_id)
+    print(f"Results: {result}")
+
 
 def search_spotify(search_artist=None, search_song=None):
     if search_artist == None:
@@ -444,7 +447,7 @@ def search_spotify(search_artist=None, search_song=None):
     else:
         print(f"Artist: '{search_artist}' - Song: '{search_song}'")
 
-    sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
+    # sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
     search_str = search_artist + "\t" + search_song
     result = sp_auth.search(search_str, limit=1)
     # pprint(result) #debug
@@ -520,18 +523,21 @@ while True:
     print(color.BOLD + "0" + color.END + " - Exit the console")
     print(color.BOLD + "1" + color.END + " - Set Playlist for Session")
     print(color.BOLD + "2" + color.END + " - List Song ID from Playlist")
-    print(color.BOLD + "3" + color.END + " - Play song by ID")
+    print(color.BOLD + "3" + color.END + " - Play song by playlist position")
     print(color.BOLD + "4" + color.END + " - Set Device")
     print(color.BOLD + "5" + color.END + " - Pause Playback")
     print(color.BOLD + "6" + color.END + " - Resume Playback")
     print(color.BOLD + "7" + color.END + " - Save Playlist Locally")
-    print(color.BOLD + "8" + color.END + " - " + color.GREEN + "Use keypad" + color.END)
+    print(color.BOLD + "8" + color.END + " - " + color.GREEN + "Select song with keypad" + color.END)
     print(color.BOLD + "9" + color.END + " - Search for Song ")
     print(color.BOLD + "10" + color.END + " - Make Playlist from CSV (only need Artist,Title) ")
     print(color.BOLD + "11" + color.END + " - Turn Lights On ")
     print(color.BOLD + "12" + color.END + " - Turn Lights Off ")
     print(color.BOLD + "13" + color.END + " - Test loud/quiet button")
     print(color.BOLD + "14" + color.END + " - Initialize starting lights")
+    print(color.BOLD + "15" + color.END + " - Test valid number entries")
+    print(color.BOLD + "16" + color.END + " - Set Song Repeat state")
+    print(color.BOLD + "17" + color.END + " - Check Keypad pinouts")
     user_input = int(input(color.BOLD + "Enter Your Choice: " + color.END))
 
     # Default - Exit
@@ -552,7 +558,7 @@ while True:
     # Play Song By ID
     elif user_input == 3:
 
-        track_selection = str(input("Enter Track ID: "))
+        track_selection = str(input("Enter Track position on playlist: "))
         play_song(track_selection)
         print(
             color.BOLD,
@@ -585,7 +591,7 @@ while True:
         )
 
     elif user_input == 8:
-        print("Test Keypad - refactor")
+        print("Enter Song number with Keypad ")
         threeNumbers: str = ""
 
         while len(threeNumbers) < 3:
@@ -625,8 +631,8 @@ while True:
         #     print("Canceling song selection")
 
         songDigits = int(threeNumbers)  # Spotify Playlist Index starts at 0
-        track_selection = getSongID(songDigits)
-        play_song(track_selection)
+        # track_selection = getSongID(songDigits)
+        play_song(songDigits)
         print("Song played. Turn off lights")
         keypadSeeburg.menuLights(light="firstDigit", state="dl")
         keypadSeeburg.menuLights(light="secondDigit", state="dl")
@@ -658,7 +664,7 @@ while True:
         elif choice == "7":
             keypadSeeburg.menuLights(light="dashLights", state="dh")
         elif choice == "8":
-            keypadSeeburg.menuLights(light="", test=True)
+            keypadSeeburg.menuLights(light="", test=True, state="")
 
     elif user_input == 12:
         #print("Turn Lights Off.")
@@ -680,7 +686,7 @@ while True:
         elif choice == "7":
             keypadSeeburg.menuLights(light="dashLights", state="dl")
         elif choice == "8":
-            keypadSeeburg.menuLights(light="", test=True)
+            keypadSeeburg.menuLights(light="", test=True, state="")
     
     elif user_input == 13:
         if keypadSeeburg.checkLoud() == True:
@@ -690,7 +696,26 @@ while True:
 
     elif user_input ==14:
         init_lights()
+    
+    elif user_input ==15:
+        _ = int(input("Enter Digits to test: "))
+        digitMenu(_)
 
+    elif user_input ==16:
+        _ = input("Enter one of the following: 'track', 'context', or 'off': ")
+        print(f"Setting to {_}")
+        set_repeat(_)
+
+    elif user_input ==17:
+        loop = 0
+        while loop < 5:
+            try:
+                triggeredPins = keypadSeeburg.check_all()
+                pinsToDigits(triggeredPins[0], triggeredPins[1])
+                loop = loop + 1
+                print(f"Loop #{loop}") 
+            except:
+                print("Error: Problem with getting pins or mapping to digit")
     else:
 
         print("Please enter valid user-input.")
