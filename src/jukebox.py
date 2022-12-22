@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import time
 from time import sleep
 from pprint import pprint
@@ -11,16 +12,16 @@ import subprocess
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth, SpotifyPKCE
 
 ##  TODO
-##  (DONE!) Fix oAuth flow 
-##  (DONE!) Refactored authentication flow to work headlesss. Converted to PKCE 
-##  (DONE!) Refactor: Make menus into functions. 
-##  (DONE!) Start play on device from playlist index selection 
-##  (DONE!) Map pins on keypad to GPIO on raspberry pi to produce a number 
-##  (DONE!) Merge changes from raspberry pi 
-##  (DONE!) Install Raspotify (https://pimylifeup.com/raspberry-pi-spotify/) 
-##                    (Done!)(https://github.com/dtcooper/raspotify/wiki/Basic-Setup-Guide) 
-##  (Done!) Establish better thread management of on GPIO checking to prevent Segmentation Faults 
-##  (Done!) Map Numbers 100 - 279 to playlist index 
+##  (DONE!) Fix oAuth flow
+##  (DONE!) Refactored authentication flow to work headlesss. Converted to PKCE
+##  (DONE!) Refactor: Make menus into functions.
+##  (DONE!) Start play on device from playlist index selection
+##  (DONE!) Map pins on keypad to GPIO on raspberry pi to produce a number
+##  (DONE!) Merge changes from raspberry pi
+##  (DONE!) Install Raspotify (https://pimylifeup.com/raspberry-pi-spotify/)
+##                    (Done!)(https://github.com/dtcooper/raspotify/wiki/Basic-Setup-Guide)
+##  (Done!) Establish better thread management of on GPIO checking to prevent Segmentation Faults
+##  (Done!) Map Numbers 100 - 279 to playlist index
 ##  (Done!) Create (automate?) full playlist (Menue #10)
 ##  - Make __init__  which will set up lights and contiunally look for key entries
 ##  - Refactor button matching to go faster
@@ -29,12 +30,12 @@ from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth, SpotifyPKCE
 ##  (Done!)Trigger lights to acknowledge key reciept. (6 lights)
 ##  - Fix Reset button . Note that Reset can use a secondary pin. (Light?)
 ##  (Done!) Add Volume Buttons
-##  - Add Power monitoring to Pi. 
-## ------ Hardware 
+##  - Add Power monitoring to Pi.
+## ------ Hardware
 ##  (DONE!) Solder board for menu lights
-##  (DONE!) Consolidate wiring to fit in jukebox. Retest. Fix Bugs 
+##  (DONE!) Consolidate wiring to fit in jukebox. Retest. Fix Bugs
 ##  (DONE!) Get rid of hum in amplifyer. (used a better power supply)
-##  (DONE!) Determine how to power LEDS for rest of box. 
+##  (DONE!) Determine how to power LEDS for rest of box.
 ## ------ Nice to have ---
 ##  Dowload copy of default playlist at bootup. Default is set in code.
 ##  Specify another playlist as default while using the app
@@ -42,10 +43,14 @@ from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth, SpotifyPKCE
 ##  Specify new global device id.
 ##  Save more JSON locally for reference. Require at 'setup'. Remove ids from code.
 ## ------ Not going to do
-##  (No) Display number selected. 
+##  (No) Display number selected.
+
 
 def getMenuHeader():
-    print(textwrap.dedent("""\
+    print(
+        textwrap.dedent(
+            """\
+=========================================================================
  _______  _______  _______  ___      _______  _______  _______  _______ 
 |       ||   _   ||  _    ||   |    |       ||       ||       ||       |
 |_     _||  |_|  || |_|   ||   |    |    ___||_     _||   _   ||    _  |
@@ -58,43 +63,31 @@ def getMenuHeader():
     |   ||  | |  ||   |_| ||    ___|| |_|   ||   _   ||       |         
     |   ||  |_|  ||      _||   |___ |       ||  | |  ||       |         
  ___|   ||       ||     |_ |    ___||  _   | |  |_|  | |     |          
-|       ||       ||    _  ||   |___ | |_|   ||       ||   _   |         
-|_______||_______||___| |_||_______||_______||_______||__| |__|  
-    
+|       ||       ||    _  ||   |___ | |_|   ||       ||   _   |     ____        
+|_______||_______||___| |_||_______||_______||_______||__| |__|     [Pv] 
+
 =========================================================================    
- """))
+ """
+        )
+    )
 
 
-path = "/Applications/Spotify.app"
+global device_id, pl_id, scope, sp_auth
 
 # You'll need these ENVs in your shell. https://developer.spotify.com/
 # SPOTIPY_CLIENT_ID=
 # SPOTIPY_CLIENT_SECRET=
 # SPOTIPY_REDIRECT_URI=
 
-
-# Device options until you can add ability to specify a different one.
-# device_id = "3fc94b15082d6a1206c60d9f97310d37bd5032da"  # laptop
-# device_id = "78776d6cc7f769f4ea5e302aa41977e9211af158"  # phone
 device_id = "98bb0735e28656bac098d927d410c3138a4b5bca"  # raspotify (raspberrypi)
-
 
 # Default Playlist
 ### https://open.spotify.com/playlist/7D7FASC0bXRMdvfjggS0ug?si=05eae12ffb2b4b6b
 pl_id = "6XIloMIjXr0QCQ8VdDPp7W"
 offset = 0
-
-
 scope = "user-read-playback-state,user-modify-playback-state,app-remote-control,streaming,playlist-modify-public"
 # Authentication options. _May_ need to create a flow for reauthenticating.
-sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
-
-# OAUTH
-# sp_auth = spotipy.Spotify(client_credentials_manager=SpotifyOAuth(scope=scope))
-
-# PKCE
-# Requires a more detailed browser authorization.
-# Produces a
+# sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
 sp_auth = spotipy.Spotify(
     client_credentials_manager=SpotifyPKCE(scope=scope, open_browser=False)
 )
@@ -103,7 +96,9 @@ sp_auth = spotipy.Spotify(
 dirName = [
     "cache"  # ,
     #'json/',
-    ]
+]
+
+
 def make_some_dirs(dirName):
     for d in dirName:
         if not os.path.exists(d):
@@ -112,20 +107,60 @@ def make_some_dirs(dirName):
         else:
             print("./", d, " Directory Found")
 
+
 def init_lights():
     try:
         arg = ["raspi-gpio", "set", "27", "op", "dh"]
         turnon = subprocess.run(arg, capture_output=True)
-        print(turnon.stdout, turnon.stderr)
+        #print(turnon.stdout, turnon.stderr) # debug
         arg = ["raspi-gpio", "set", "23", "op", "dh"]
         turnon = subprocess.run(arg, capture_output=True)
-        print(turnon.stdout, turnon.stderr)
+        #print(turnon.stdout, turnon.stderr) # debug
+        print("...Turned on initial lights")
     except:
         print("ERROR: Problem initializing lights")
 
+def waitForKeys():
+    print("Enter Song number with Keypad ")
+    threeNumbers: str = ""
+
+    while len(threeNumbers) < 3:
+        # Loop until three digits have been entered on the keypad
+        triggeredPins = keypadSeeburg.check_all()
+
+        print(f"triggeredPins: {triggeredPins}")
+
+        if triggeredPins != "ERR":
+            # Add each new digit to the end of the string
+            _ = pinsToDigits(triggeredPins[0], triggeredPins[1])
+            threeNumbers += _
+            print(f"threeNumbers: {threeNumbers}")
+            if len(threeNumbers) == 1:
+                keypadSeeburg.menuLights(light="firstDigit", state="dh")
+            elif len(threeNumbers) == 2:
+                keypadSeeburg.menuLights(light="secondDigit", state="dh")
+
+        else:
+            print("Didnt get two pins")
+            if len(threeNumbers) == 1:
+                keypadSeeburg.menuLights(light="firstDigit", state="dh")
+            elif len(threeNumbers) == 2:
+                keypadSeeburg.menuLights(light="secondDigit", state="dh")
+
+    print(f"I've got three digits! {threeNumbers}")
+
+
+    songDigits = int(threeNumbers)  # Spotify Playlist Index starts at 0
+    # track_selection = getSongID(songDigits)
+    play_song(songDigits)
+    print("Song played. Turn off lights")
+    keypadSeeburg.menuLights(light="firstDigit", state="dl")
+    keypadSeeburg.menuLights(light="secondDigit", state="dl")
+
+# Loop through this until you get 3 digits from the keypad.
 # Retrives LIVE playlist from Spotify and with desired fields
 def list_playlist(pl_id) -> str:
-    response = sp.playlist_items(
+    response = sp_auth.playlist_items(
         pl_id,
         offset=offset,
         fields="items.track.artists.name,items.track.name,items.track.id,total",
@@ -133,11 +168,6 @@ def list_playlist(pl_id) -> str:
     )
     if len(response["items"]) == 0:
         print("There are no items in your playlist.")
-
-    ### print("Items in Response:")
-    ### {'track': {'artists': [{'name': 'New Order'}],
-    ###           'id': '1RSy7B2vfPi84N80QJ6frX',
-    ###           'name': 'Blue Monday - 2016 Remaster'}}
 
     return response
 
@@ -181,15 +211,16 @@ def list_devices():
 
 
 def play_song(track_selection):
+    track_selection -= 100 # Match it up with a zero index offset
     # Playing song by selecting position and context of the playlist
     # This will make the jukebox keep playing through the playlist.
     context_uri = f"spotify:playlist:{pl_id}"
-    offset = {'position' : track_selection}
+    offset = {"position": track_selection}
     # print(f"context_uri = {context_uri}") #debug
     # print(f"offset = {offset}") #debug
     # print(f"device_id = {device_id}") #debug
-    uris=None
-    send=sp_auth.start_playback(device_id, context_uri, uris, offset)
+    uris = None
+    send = sp_auth.start_playback(device_id, context_uri, uris, offset)
     print(send)
 
     # TODO - Print name of device ID that you're playing on.
@@ -213,8 +244,7 @@ def store_local(json_data, file_prefix):
     return file_name
 
 
-
-def setVolume(level):    
+def setVolume(level):
     # Sets Spotify device to "soft" or "loud"
 
     if level == 1:
@@ -226,7 +256,6 @@ def setVolume(level):
     print(sp_auth.volume(device_id))
 
 
-
 def keypadMatch(pinX, pinY):
     """
     Takes any two GPIO numbers, finds which digit on the keypad
@@ -234,8 +263,6 @@ def keypadMatch(pinX, pinY):
 
     """
     tic = time.perf_counter()
-    
-
     # This is a mapping based on the jukebox keypad circuitry
     # Seeburg Tabletop Jukebox keypad
     """Pins triggered in pairs based on circuitry
@@ -256,7 +283,7 @@ def keypadMatch(pinX, pinY):
     # Buttons pushed will complete a circuit on each pair of pins.
     # Assumes voltage applied to following pins on the keypad : 1,2,3,6,11,14,15,16
     # keypadPins = (
-          # Needs updating        
+    # Needs updating
     #     (5, 7),  # 0
     #     (8, 17),  # 1
     #     (9, 12),  # 2
@@ -322,7 +349,7 @@ def keypadMatch(pinX, pinY):
             matchX = False
             matchY = False
 
-        if pinX == gpioToDigits["R"][0]: 
+        if pinX == gpioToDigits["R"][0]:
             print("********** RESET button pushed!!  ********")
             matchX = True
             matchY = True
@@ -339,7 +366,6 @@ def keypadMatch(pinX, pinY):
             keys = keys + 1
 
     return keys
-
 
 # Python program to concatenate
 # three numbers
@@ -431,6 +457,7 @@ def pinsToDigits(pinX=0, pinY=0):
 
     return keys
 
+
 def set_repeat(state):
     """
     state - track, context, or off
@@ -490,7 +517,6 @@ def makeplaylist():
                 line_count += 1
         list_playlist(playlist_id)
 
-
 # print(color.BOLD + 'Hello World !' + color.END)
 # https://stackoverflow.com/questions/8924173/how-to-print-bold-text-in-python
 class color:
@@ -506,19 +532,9 @@ class color:
     END = "\033[0m"
 
 
-# -----------------------------
-#  Print Header
-getMenuHeader()
-# -----------------------------
-#  Initialize directories
-make_some_dirs(dirName)
-# -----------------------------
-#  Set some pins defaults:
-# raspi-gpio set 23 op dh  # Dashlights
-# raspi-gpio set 27 op dh  # Deposit More Coins
+# Let's start this puppy up.
 
-# Let's start this puppy up. 
-while True:
+def printMenu():
     print(color.BOLD + "\n **** Spotify CLI Commands  ****" + color.END)
     print(color.BOLD + "0" + color.END + " - Exit the console")
     print(color.BOLD + "1" + color.END + " - Set Playlist for Session")
@@ -528,9 +544,22 @@ while True:
     print(color.BOLD + "5" + color.END + " - Pause Playback")
     print(color.BOLD + "6" + color.END + " - Resume Playback")
     print(color.BOLD + "7" + color.END + " - Save Playlist Locally")
-    print(color.BOLD + "8" + color.END + " - " + color.GREEN + "Select song with keypad" + color.END)
+    print(
+        color.BOLD
+        + "8"
+        + color.END
+        + " - "
+        + color.GREEN
+        + "Select song with keypad"
+        + color.END
+    )
     print(color.BOLD + "9" + color.END + " - Search for Song ")
-    print(color.BOLD + "10" + color.END + " - Make Playlist from CSV (only need Artist,Title) ")
+    print(
+        color.BOLD
+        + "10"
+        + color.END
+        + " - Make Playlist from CSV (only need Artist,Title) "
+    )
     print(color.BOLD + "11" + color.END + " - Turn Lights On ")
     print(color.BOLD + "12" + color.END + " - Turn Lights Off ")
     print(color.BOLD + "13" + color.END + " - Test loud/quiet button")
@@ -538,12 +567,11 @@ while True:
     print(color.BOLD + "15" + color.END + " - Test valid number entries")
     print(color.BOLD + "16" + color.END + " - Set Song Repeat state")
     print(color.BOLD + "17" + color.END + " - Check Keypad pinouts")
-    user_input = int(input(color.BOLD + "Enter Your Choice: " + color.END))
 
+def menuCommands(user_input, device_id, pl_id):
     # Default - Exit
     if user_input == 0:
         print("Good Bye. Have a great day!")
-        break
 
     # Set New Playlist
     elif user_input == 1:
@@ -572,12 +600,12 @@ while True:
 
     elif user_input == 5:
         # Pauses playback
-        response = sp.pause_playback(device_id)
+        response = sp_auth.pause_playback(device_id)
         print(color.BOLD, color.RED + " * Playback Paused * " + color.END)
 
     elif user_input == 6:
         # Restart Paused Playback
-        response = sp.start_playback(device_id)
+        response = sp_auth.start_playback(device_id)
         print(color.BOLD, color.GREEN + " > Playback Resumed > " + color.END)
 
     elif user_input == 7:
@@ -591,51 +619,7 @@ while True:
         )
 
     elif user_input == 8:
-        print("Enter Song number with Keypad ")
-        threeNumbers: str = ""
-
-        while len(threeNumbers) < 3:
-            # Loop until three digits have been entered on the keypad
-            triggeredPins = keypadSeeburg.check_all()
-
-            print(f"triggeredPins: {triggeredPins}")
-
-            if triggeredPins != "ERR":
-                # Add each new digit to the end of the string
-                _ = pinsToDigits(triggeredPins[0], triggeredPins[1])
-                threeNumbers += _
-                print(f"threeNumbers: {threeNumbers}")
-                if len(threeNumbers) == 1:
-                    keypadSeeburg.menuLights(light="firstDigit", state="dh")
-                elif len(threeNumbers) == 2:
-                    keypadSeeburg.menuLights(light="secondDigit", state="dh")
-
-            else:
-                print("Didnt get two pins")
-                if len(threeNumbers) == 1:
-                    keypadSeeburg.menuLights(light="firstDigit", state="dh")
-                elif len(threeNumbers) == 2:
-                    keypadSeeburg.menuLights(light="secondDigit", state="dh")
-
-        print(f"I've got three digits! {threeNumbers}")
-
-        # [Debug] - Swap this out with the shorter section below to be able to decline.
-        # userChoicePlay = str(
-        #     input(f"Would you like to play song # {threeNumbers} on the playlist?(Y/N)")
-        # )
-        # songDigits = int(threeNumbers)  # Spotify Playlist Index starts at 0
-        # if userChoicePlay == "Y":
-        #     track_selection = getSongID(songDigits)
-        #     play_song(track_selection)
-        # else:
-        #     print("Canceling song selection")
-
-        songDigits = int(threeNumbers)  # Spotify Playlist Index starts at 0
-        # track_selection = getSongID(songDigits)
-        play_song(songDigits)
-        print("Song played. Turn off lights")
-        keypadSeeburg.menuLights(light="firstDigit", state="dl")
-        keypadSeeburg.menuLights(light="secondDigit", state="dl")
+        waitForKeys()
 
     # Loop through this until you get 3 digits from the keypad.
     elif user_input == 9:
@@ -645,10 +629,12 @@ while True:
         makeplaylist()
 
     elif user_input == 11:
-        #print("Cycling through display lights.")
-        
-        choice = input("1] Reset\n2] Coin\n3] 1st Digit\n4] Single \n5] 2nd Digit\n6] Album\n7] Dash\n8] Test All \n: ")
-        
+        # print("Cycling through display lights.")
+
+        choice = input(
+            "1] Reset\n2] Coin\n3] 1st Digit\n4] Single \n5] 2nd Digit\n6] Album\n7] Dash\n8] Test All \n: "
+        )
+
         if choice == "1":
             keypadSeeburg.menuLights(light="reset", state="dh")
         elif choice == "2":
@@ -667,10 +653,12 @@ while True:
             keypadSeeburg.menuLights(light="", test=True, state="")
 
     elif user_input == 12:
-        #print("Turn Lights Off.")
-        
-        choice = input("1] Reset\n2] Coin\n3] 1st Digit\n4] Single \n5] 2nd Digit\n6] Album\n7] Dash\n8] Test All \n: ")
-        
+        # print("Turn Lights Off.")
+
+        choice = input(
+            "1] Reset\n2] Coin\n3] 1st Digit\n4] Single \n5] 2nd Digit\n6] Album\n7] Dash\n8] Test All \n: "
+        )
+
         if choice == "1":
             keypadSeeburg.menuLights(light="reset", state="dl")
         elif choice == "2":
@@ -687,35 +675,63 @@ while True:
             keypadSeeburg.menuLights(light="dashLights", state="dl")
         elif choice == "8":
             keypadSeeburg.menuLights(light="", test=True, state="")
-    
+
     elif user_input == 13:
         if keypadSeeburg.checkLoud() == True:
-                setVolume(level=1)
+            setVolume(level=1)
         else:
-                setVolume(level=0)
+            setVolume(level=0)
 
-    elif user_input ==14:
+    elif user_input == 14:
         init_lights()
-    
-    elif user_input ==15:
+
+    elif user_input == 15:
         _ = int(input("Enter Digits to test: "))
         digitMenu(_)
 
-    elif user_input ==16:
+    elif user_input == 16:
         _ = input("Enter one of the following: 'track', 'context', or 'off': ")
         print(f"Setting to {_}")
         set_repeat(_)
 
-    elif user_input ==17:
+    elif user_input == 17:
         loop = 0
         while loop < 5:
             try:
                 triggeredPins = keypadSeeburg.check_all()
                 pinsToDigits(triggeredPins[0], triggeredPins[1])
                 loop = loop + 1
-                print(f"Loop #{loop}") 
+                print(f"Loop #{loop}")
             except:
                 print("Error: Problem with getting pins or mapping to digit")
     else:
 
         print("Please enter valid user-input.")
+
+# -----------------------------
+#  Print Header
+getMenuHeader()
+# -----------------------------
+#  Initialize directories
+make_some_dirs(dirName)
+# -----------------------------
+#  Set some pins defaults:
+# raspi-gpio set 23 op dh  # Dashlights
+# raspi-gpio set 27 op dh  # Deposit More Coins
+init_lights()
+
+
+if len(sys.argv) > 1:
+   arg = sys.argv[1]
+   menuCommands(int(arg),device_id, pl_id)
+else:
+    printMenu()
+    print('''
+    Send an above command as an argument.
+    Ex: python jukebox.py 8
+    ''')
+   
+#    match arg:
+#     case "off":
+#         print("Turning Lights Off")
+    
