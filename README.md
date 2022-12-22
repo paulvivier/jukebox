@@ -31,5 +31,39 @@ Developed on Python 3.10
     - `SPOTIPY_REDIRECT_URI`
 
 
+### Features
+ 
+- (Done!) Add Volume Buttons
+- (DONE!) Fix oAuth flow
+- (DONE!) Refactored authentication flow to work headlesss. Converted to PKCE
+- (DONE!) Refactor: Make menus into functions.
+- (DONE!) Start play on device from playlist index selection
+- (DONE!) Map pins on keypad to GPIO on raspberry pi to produce a number
+- (DONE!) Merge changes from raspberry pi
+- (DONE!) Install Raspotify (https://pimylifeup.com/raspberry-pi-spotify/)
+-                     (Done!)(https://github.com/dtcooper/raspotify/wiki/Basic-Setup-Guide)
+- (Done!) Establish better thread management of on GPIO checking to prevent Segmentation Faults
+- (Done!) Map Numbers 100 - 279 to playlist index
+- (Done!)Trigger lights to acknowledge key reciept. (6 lights)
+- (Done!) Create (automate?) full playlist (Menue #10)
+
+#### ------ Hardware Features
+- (DONE!) Solder board for menu lights
+- (DONE!) Consolidate wiring to fit in jukebox. Retest. Fix Bugs
+- (DONE!) Get rid of hum in amplifyer. (used a better power supply)
+- (DONE!) Determine how to power LEDS for rest of box.
+
+#### ------ Nice to have ---
+-  Dowload copy of default playlist at bootup. Default is set in code.
+- Specify another playlist as default while using the app
+- Dowload copy of new default playlist
+- Specify new global device id.
+- Save more JSON locally for reference. Require at 'setup'. Remove ids from code.
+
+#### ------ Not going to do
+- (No) Display number selected.
+
+
+
 
 ![Jukebox Image](images/tabletop_jukebox.jpg)

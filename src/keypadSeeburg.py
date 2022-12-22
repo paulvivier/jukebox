@@ -76,9 +76,11 @@ def checkLoud(gpio=24):  # checks the state of the button
     print(f"volume_loud: {volume_loud}")
     if volume_loud.is_pressed == 1:
         print(f"LOUD!! volume_loud: {volume_loud} ")
+        volume_loud.close()
         return True
     if volume_loud.is_pressed == 0:
         print(f"_soft_(shhh!) volume_loud: {volume_loud} ")
+        volume_loud.close()
         return False
 
 
