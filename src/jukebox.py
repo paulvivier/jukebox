@@ -135,7 +135,12 @@ def waitForKeys():
             _ = pinsToDigits(triggeredPins[0], triggeredPins[1])
             threeNumbers += _
             print(f"threeNumbers: {threeNumbers}")
-            if len(threeNumbers) == 1:
+            if _ == "R":
+                print("Reset !!!!")
+                keypadSeeburg.menuLights(light="firstDigit", state="dl")
+                keypadSeeburg.menuLights(light="secondDigit", state="dl")
+                threeNumbers = ""
+            elif len(threeNumbers) == 1:
                 keypadSeeburg.menuLights(light="firstDigit", state="dh")
             elif len(threeNumbers) == 2:
                 keypadSeeburg.menuLights(light="secondDigit", state="dh")
@@ -353,7 +358,7 @@ def keypadMatch(pinX, pinY):
             print("********** RESET button pushed!!  ********")
             matchX = True
             matchY = True
-            keys = 11
+            keys = "R"
             return keys
 
         if matchX == True & matchY == True:
@@ -444,13 +449,13 @@ def pinsToDigits(pinX=0, pinY=0):
     Send 'pinX' and 'pinY' to be mapped to a digit (optional)
     'manual' obtains pinX and pinY
 
-    Responds with three digits that map to a song number.
+    Responds with a single digit
     """
     keys = ""
 
     # Sends request to keypadMatch to map to digit and waits for a key.
-    pair = keypadMatch(pinX, pinY)
-    keys = str(pair)
+    keypad = keypadMatch(pinX, pinY)
+    keys = str(keypad)
     if keys is None:
         keys = "empty"
     print(f"Key pressed: {keys}")
@@ -619,7 +624,14 @@ def menuCommands(user_input, device_id, pl_id):
         )
 
     elif user_input == 8:
-        waitForKeys()
+        while True:
+            waitForKeys()
+            
+            if keypadSeeburg.checkLoud() == True:
+                setVolume(level=1)
+            else:
+                setVolume(level=0)
+
 
     # Loop through this until you get 3 digits from the keypad.
     elif user_input == 9:
