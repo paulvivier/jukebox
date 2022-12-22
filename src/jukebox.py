@@ -11,40 +11,7 @@ import subprocess
 
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth, SpotifyPKCE
 
-##  TODO
-##  (DONE!) Fix oAuth flow
-##  (DONE!) Refactored authentication flow to work headlesss. Converted to PKCE
-##  (DONE!) Refactor: Make menus into functions.
-##  (DONE!) Start play on device from playlist index selection
-##  (DONE!) Map pins on keypad to GPIO on raspberry pi to produce a number
-##  (DONE!) Merge changes from raspberry pi
-##  (DONE!) Install Raspotify (https://pimylifeup.com/raspberry-pi-spotify/)
-##                    (Done!)(https://github.com/dtcooper/raspotify/wiki/Basic-Setup-Guide)
-##  (Done!) Establish better thread management of on GPIO checking to prevent Segmentation Faults
-##  (Done!) Map Numbers 100 - 279 to playlist index
-##  (Done!) Create (automate?) full playlist (Menue #10)
-##  (Done! essentially)- Make __init__  which will set up lights and contiunally look for key entries
-##  - Refactor button matching to go faster
-##  - Add song to Queue instead of play immediate. (keep playing current song)
-##  - Set up secret number library: 1) Force song to play 2) shutdown
-##  (Done!)Trigger lights to acknowledge key reciept. (6 lights)
-##  - Fix Reset button . Note that Reset can use a secondary pin. (Light?)
-##  (Done!) Add Volume Buttons
-##  - Add Power monitoring to Pi.
-## ------ Hardware
-##  (DONE!) Solder board for menu lights
-##  (DONE!) Consolidate wiring to fit in jukebox. Retest. Fix Bugs
-##  (DONE!) Get rid of hum in amplifyer. (used a better power supply)
-##  (DONE!) Determine how to power LEDS for rest of box.
-## ------ Nice to have ---
-##  Dowload copy of default playlist at bootup. Default is set in code.
-##  Specify another playlist as default while using the app
-##  Dowload copy of new default playlist
-##  Specify new global device id.
-##  Save more JSON locally for reference. Require at 'setup'. Remove ids from code.
-## ------ Not going to do
-##  (No) Display number selected.
-
+### See "README" for features and "Issues" for things to fix
 
 def getMenuHeader():
     print(
@@ -624,7 +591,8 @@ def menuCommands(user_input, device_id, pl_id):
         )
 
     elif user_input == 8:
-        waitForKeys()
+        while True:
+            waitForKeys()
 
     # Loop through this until you get 3 digits from the keypad.
     elif user_input == 9:
