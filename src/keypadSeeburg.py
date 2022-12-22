@@ -39,7 +39,7 @@ voltageKeys = {
     9: (7, 9),  # 9
     "R": (4, 4),  # Reset
 }
-# troubleshooting problem with 
+# troubleshooting problem with
 #  #2 - Triggering gpio 19 & not gpio 13 from keypadPin 9 & 12
 #  #R - Not triggering anything - should be triggering gpio 21
 
@@ -54,7 +54,7 @@ keyPins = {
     9: 19,
     10: 26,
     12: 13,
-    13: 6,  
+    13: 6,
     17: 5,
 }
 
@@ -65,13 +65,12 @@ lightPins = {
     "selectSingle": 10,  # Select any Single
     "secondDigit": 11,  # 2nd Digit
     "selectAlbumn": 22,  # Select any Albumn
-    "dashLights": 23, # dashLights
+    "dashLights": 23,  # dashLights
 }
 
 
-
-def checkLoud(gpio=24): #checks the state of the button
-    #GPIO 24 for "Loud" volume button
+def checkLoud(gpio=24):  # checks the state of the button
+    # GPIO 24 for "Loud" volume button
     volume_loud = Button(gpio, pull_up=True)
 
     print(f"volume_loud: {volume_loud}")
@@ -84,9 +83,10 @@ def checkLoud(gpio=24): #checks the state of the button
         volume_loud.close()
         return False
 
+
 def menuLights(light, state, test=False):
     """
-    Takes a key value of lightPins{} as _light_ parameter and 
+    Takes a key value of lightPins{} as _light_ parameter and
     turns it on. Will also test blinking all lights if test=TRUE and lights=""
     state = dh|dl (output or input), ""
 
@@ -100,21 +100,21 @@ def menuLights(light, state, test=False):
                 # print(f"gpio: {gpio}") #debug
                 led = LED(gpio)
                 led.on()
-                time.sleep(.08)
+                time.sleep(0.08)
                 led.off()
             turns = turns + 1
 
-    elif len(state) == 2 :
+    elif len(state) == 2:
         gpio = lightPins[light]
         # print(f"gpio: {gpio}")
         gpio_str = str(gpio)
         # print(f"gpio_str: {gpio_str}")
         # led.on()
-        arg = ['raspi-gpio', 'set', 'op']
+        arg = ["raspi-gpio", "set", "op"]
         arg.insert(2, gpio_str)
         arg.insert(5, state)
-        print (arg)
-        ## arg should look like = ["raspi-gpio", "set", led, "op", "dh"] 
+        print(arg)
+        ## arg should look like = ["raspi-gpio", "set", led, "op", "dh"]
         ## raspi-gpio is faster and enables the light to stay on past gpio threads.
         ## apparently more dangerous too so ... who knows what I'll mess up.
         setLed = subprocess.run(arg, capture_output=True)
@@ -129,6 +129,7 @@ def setPins(whichPins):
         gpio = whichPins[x]
         Button(gpio, pull_up=False)
 
+
 def quickcheck_all():
     """
     Get the gpio addresses for two pins once the triggered
@@ -136,9 +137,9 @@ def quickcheck_all():
     """
     setPins(keyPins)
     print("### Press buttons slowly. Wait for Attempt to itterate ")
-    gpios=[]
+    gpios = []
     triggerPin = 25
-#    faulthandler.enable()
+    #    faulthandler.enable()
     trigger = Button(triggerPin, pull_up=False)
     # print(trigger) debut
     trigger.wait_for_press()
@@ -158,7 +159,6 @@ def quickcheck_all():
             return gpios
 
 
-
 def check_all():
     """
     Get the gpio addresses for two pins once the triggered
@@ -169,7 +169,7 @@ def check_all():
     gpio1 = 0
     gpio2 = 0
     triggerPin = 25
-#    faulthandler.enable()
+    #    faulthandler.enable()
     trigger = Button(triggerPin, pull_up=False)
     # print(trigger) debut
     trigger.wait_for_press()
@@ -190,7 +190,8 @@ def check_all():
                 gpio1 = gpio
                 button1.close()
                 trigger.close()
-                if x == 4: gpio2 = gpio
+                if x == 4:
+                    gpio2 = gpio
             if gpio2 > 0:
                 time.sleep(1)
                 toc = time.perf_counter()
